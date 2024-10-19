@@ -132,7 +132,7 @@ ipcMain.on('mainWindow', (event, arg) => {
         openApp(arg.id)
     } else if (arg.data == 'getAppListRecent') {
         // console.log(appListRecent.reverse());
-        
+        console.log(appListRecent.map(item => item.name));
         event.returnValue = appListRecent.reverse()
     }
 })
@@ -191,7 +191,7 @@ function openApp(id) {
     }
     appListRecent.push(appItem)
 
-    // console.log(appListRecent.map(item => item.id));
+
     
     store.set('appListRecent', appListRecent.map(item => item.id))
     const window = new BrowserWindow(appItem.windowOptions)

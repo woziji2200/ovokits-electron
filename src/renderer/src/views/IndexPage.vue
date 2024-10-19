@@ -20,8 +20,8 @@
             最近使用
         </div>
         <div class="search-res">
-            <div v-for="i in appShow" :key="i.id" :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'">
-                <img src="./../../resources/app.png" alt="" srcset="">
+            <div v-for="i in appShow" :id="i.id" :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'">
+                <img :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
                 <div class="res-item-title">
                     <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
                     <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)"></div>
@@ -42,13 +42,20 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
+
+
 const ipcRenderer = window.electron.ipcRenderer
 const searchInput = ref()
 ipcRenderer.on('mainWindow', (event, arg) => {
     if (arg.data === 'mainWindowShow') {
+        appRecent.value = ipcRenderer.sendSync('mainWindow', { data: 'getAppListRecent' })
+        if (appSearch.value === "") {
+            appShow.value = appRecent.value
+            isAppRencent.value = true
+            appSelect.value = appShow.value[0]?.id || '-1'
+        }
         searchInput.value.select()
         searchInput.value.focus()
-        appRecent.value = ipcRenderer.sendSync('mainWindow', { data: 'getAppListRecent' })
     }
 })
 
@@ -77,8 +84,11 @@ const appShow = ref([])
 const appSearch = ref("")
 const appSelect = ref(0)
 watch(appSearch, (newVal, oldVal) => {
+    console.log(11111);
+
     if (newVal === "") {
         appShow.value = appRecent.value
+
         isAppRencent.value = true
         appSelect.value = appShow.value[0]?.id || '-1'
         console.log(appSelect.value, appShow.value[0]?.id);
@@ -96,7 +106,7 @@ const searchHighlight = (value, searchValue, id, isTitle) => {
     const appItem = appShow.value.find(i => i.id == id)
     const highlight = value.replace(new RegExp(searchValue, 'i'), (text) => `<span class="highlight">${text}</span>`)
     if (isTitle) {
-        return highlight + '&nbsp;&nbsp;<span style="color: #888">Enter to select</span>'
+        return highlight + (appSelect.value == id?'&nbsp;&nbsp;<span style="color: #888">Enter to select</span>':'')
     } else {
         return highlight + '&nbsp;&nbsp;<span style="color: #888">作者: ' + appItem.author + '</span>'
     }
@@ -105,8 +115,13 @@ const searchHighlight = (value, searchValue, id, isTitle) => {
 const onkeydown = (event) => {
     if (event.key == 'ArrowUp') {
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) - 1]?.id || appShow.value[appShow.value.length - 1].id
+        document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
+        console.log(document.getElementById(appSelect.value));
+        
     } else if (event.key == 'ArrowDown') {
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) + 1]?.id || appShow.value[0].id
+        document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
+        
     } else if (event.key == 'Escape') {
         ipcRenderer.send('mainWindow', {
             data: 'hide',

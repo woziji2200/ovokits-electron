@@ -5,6 +5,7 @@
     "startType": "html",
     "entry": "index.html",
     "author": "滑小稽",
+    "logo": "maolei.jpg",
     "windowOptions": {
         "width": 800,
         "height": 600,
