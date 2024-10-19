@@ -1,0 +1,22 @@
+{
+    "name": "test1",
+    "version": "1.0.0",
+    "desc": "测试插件1111111",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "滑小稽",
+    "windowOptions": {
+        "width": 800,
+        "height": 600,
+        "minWidth": 400,
+        "minHeight": 300,
+        "maxWidth": 1200,
+        "maxHeight": 900,
+        "resizable": true,
+        "alwaysOnTop": false,
+        "frame": true,
+        "show": true,
+        "center": true,
+        "title": "Test Plugin 1"
+    }
+}
