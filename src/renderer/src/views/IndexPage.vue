@@ -20,7 +20,7 @@
             最近使用
         </div>
         <div class="search-res">
-            <div v-for="i in appShow" :id="i.id" :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'">
+            <div v-for="i in appShow" :id="i.id" :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)">
                 <img :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
                 <div class="res-item-title">
                     <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
@@ -42,7 +42,7 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
-
+import Fuse from 'fuse.js'
 
 const ipcRenderer = window.electron.ipcRenderer
 const searchInput = ref()
@@ -84,18 +84,21 @@ const appShow = ref([])
 const appSearch = ref("")
 const appSelect = ref(0)
 watch(appSearch, (newVal, oldVal) => {
-    console.log(11111);
 
     if (newVal === "") {
         appShow.value = appRecent.value
-
         isAppRencent.value = true
         appSelect.value = appShow.value[0]?.id || '-1'
-        console.log(appSelect.value, appShow.value[0]?.id);
+        // console.log(appSelect.value, appShow.value[0]?.id);
         return
     }
     isAppRencent.value = false
-    appShow.value = app.value.filter((i) => { return i.name.includes(newVal) || i.desc.includes(newVal) })
+    // appShow.value = app.value.filter((i) => { return i.name.includes(newVal) || i.desc.includes(newVal) })
+    const fuse = new Fuse(app.value, {
+        keys: ['name', 'desc'],
+    })
+    appShow.value = fuse.search(newVal).map(i => i.item)
+    console.log(appShow.value);
     appSelect.value = appShow.value[0]?.id || '-1'
     console.log(appSelect.value, appShow.value[0]?.id);
 
@@ -116,7 +119,6 @@ const onkeydown = (event) => {
     if (event.key == 'ArrowUp') {
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) - 1]?.id || appShow.value[appShow.value.length - 1].id
         document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
-        console.log(document.getElementById(appSelect.value));
         
     } else if (event.key == 'ArrowDown') {
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) + 1]?.id || appShow.value[0].id
@@ -127,12 +129,15 @@ const onkeydown = (event) => {
             data: 'hide',
         })
     } else if (event.key == 'Enter') {
-        ipcRenderer.send('mainWindow', {
-            data: 'openApp',
-            id: appSelect.value
-        })
+        openPlugin(appSelect.value)
     }
+}
 
+const openPlugin = (id) => {
+    ipcRenderer.send('mainWindow', {
+        data: 'openApp',
+        id: id
+    })
 }
 
 </script>
@@ -144,7 +149,17 @@ const onkeydown = (event) => {
 
 .res-item-select {
     background-color: #f1f1f1;
+    position: relative;
     /* border: solid 1px #0000001e; */
+}
+.res-item-select::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: #98b9ff;
+    left: 0;
+    top: 0;
 }
 </style>
 

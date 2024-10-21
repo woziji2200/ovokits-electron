@@ -6,6 +6,8 @@ import { globalShortcut } from 'electron/main'
 import fs from 'fs'
 import md5 from 'js-md5'
 import Store from 'electron-store';
+import { get } from 'http'
+import { tr } from 'element-plus/lib/locale/index.js'
 
 const store = new Store();
 process.on('uncaughtException', function (err) {
@@ -36,6 +38,7 @@ function createMainWindow() {
     tray.setToolTip('OvO Kits')
     tray.setContextMenu(Menu.buildFromTemplate([
         { label: "显示", click: () => { mainWindow.show() } },
+        { label: "插件设置", click: () => { openSettingsWindow() } },
         { label: "退出", click: () => { app.exit() } }
     ]))
     mainWindow.setSkipTaskbar(true)
@@ -126,12 +129,10 @@ ipcMain.on('mainWindow', (event, arg) => {
     } else if (arg.data == 'getAppList') {
         appList = getAppList()
         appListRecent = store.get('appListRecent', []).map(id => appList.find(item => item.id == id))
-        // console.log(appListRecent, appList);
         event.returnValue = appList
     } else if (arg.data == 'openApp') {
         openApp(arg.id)
     } else if (arg.data == 'getAppListRecent') {
-        // console.log(appListRecent.reverse());
         console.log(appListRecent.map(item => item.name));
         event.returnValue = appListRecent.reverse()
     }
@@ -144,7 +145,7 @@ ipcMain.on('mainWindow', (event, arg) => {
  */
 function getAppList() {
     let pluginsList = []
-    const plugins = fs.readdirSync(path.join(__dirname, '../../resources/plugins'))    
+    const plugins = fs.readdirSync(path.join(__dirname, '../../resources/plugins'))
     for (const plugin of plugins) {
         try {
             const config = fs.readFileSync(path.join(__dirname, '../../resources/plugins', plugin, 'config.json')).toString()
@@ -161,14 +162,13 @@ function getAppList() {
     return pluginsList
 }
 
+let pid = 0;
 
 /**
  * @typedef { Object } WindowList
  * @property { BrowserWindow } window
  * @property { number } pid
  */
-
-let pid = 0;
 
 /**
  * @type { WindowList[] }
@@ -181,7 +181,7 @@ let windowList = []
  */
 function openApp(id) {
     const appItem = appList.find(item => item.id == id)
-    for(let i =0; i < appListRecent.length; i++) {
+    for (let i = 0; i < appListRecent.length; i++) {
         if (appListRecent[i].id == id) {
             appListRecent.splice(i, 1)
         }
@@ -191,8 +191,6 @@ function openApp(id) {
     }
     appListRecent.push(appItem)
 
-
-    
     store.set('appListRecent', appListRecent.map(item => item.id))
     const window = new BrowserWindow(appItem.windowOptions)
     window.loadURL(path.join(appItem.path, appItem.entry))
@@ -200,3 +198,77 @@ function openApp(id) {
     pid = pid + 1
 }
 // store.clear('appListRecent')
+
+
+function openSettingsWindow() {
+    let settingsWindow = null
+    settingsWindow = new BrowserWindow({
+        width: 800,
+        height: 500,
+        show: false,
+        autoHideMenuBar: true,
+        // transparent: true,
+        // frame: false,
+        ...(process.platform === 'linux' ? { icon } : {}),
+        webPreferences: {
+            preload: path.join(__dirname, '../preload/index.js'),
+            sandbox: false,
+            webSecurity: false
+        },
+    })
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+        settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '?page=settings')
+    } else {
+        settingsWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
+            query: { page: 'settings' }
+        })
+    }
+    settingsWindow.on('ready-to-show', () => {
+        settingsWindow.show()
+    })
+}
+
+const launcherSettingsPath = path.join(__dirname, '../../resources/settings.json')
+function getSettingsList() {
+    let settingsList = [{
+        name: '启动器设置',
+        path: 'launcher',
+        settings: JSON.parse(fs.readFileSync(launcherSettingsPath).toString())
+    }]
+    
+    appList.forEach(item => {
+        try {
+            if(!fs.existsSync(path.join(item.path, 'settings.json'))) {
+                return
+            }
+            const settings = fs.readFileSync(path.join(item.path, 'settings.json')).toString()
+            const settingsJson = JSON.parse(settings)
+            settingsList.push({
+                name: item.name,
+                path: item.path,
+                settings: settingsJson
+            })
+        } catch (error) {
+            console.error(error)
+        }
+    })
+    return settingsList
+}
+ipcMain.on('settingsWindow', (event, arg) => {
+    if(arg.data == 'getSettingsList') {
+        // console.log(getSettingsList());
+        event.returnValue = getSettingsList()
+    } else if(arg.data == 'saveSettings') {
+        try {
+            if(arg.path == 'launcher') {
+                fs.writeFileSync(launcherSettingsPath, arg.settings)
+            } else {
+                fs.writeFileSync(path.join(arg.path, 'settings.json'), arg.settings)
+            }
+            event.returnValue = 'success'
+        } catch (error) {
+            event.returnValue = error
+            console.log(error);
+        }
+    }
+})
