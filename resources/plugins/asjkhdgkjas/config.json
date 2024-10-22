@@ -1,11 +1,10 @@
 {
-    "name": "test2",
-    "version": "1.0.0",
-    "desc": "回家卡刷道具卡很少看见德哈卡",
+    "name": "滑稽果",
+    "version": "1.2.0",
+    "desc": "阿萨的环境拉升的卡上",
     "startType": "html",
     "entry": "index.html",
     "author": "滑小稽",
-    "logo": "maolei.jpg",
     "windowOptions": {
         "width": 800,
         "height": 600,
@@ -17,6 +16,6 @@
         "alwaysOnTop": false,
         "frame": true,
         "center": true,
-        "title": "Test Plugin 1"
+        "title": "滑稽果"
     }
 }

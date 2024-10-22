@@ -1,5 +1,5 @@
 {
-    "name": "ask了解到",
+    "name": "vue模板",
     "version": "1.0.0",
     "desc": "的身份记录卡撒旦解放",
     "startType": "html",
@@ -15,8 +15,8 @@
         "resizable": true,
         "alwaysOnTop": false,
         "frame": true,
-        "show": true,
         "center": true,
-        "title": "Test Plugin 1"
+        "title": "Test Plugin 1",
+        "autoHideMenuBar": true
     }
 }

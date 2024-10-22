@@ -6,12 +6,12 @@ import { globalShortcut } from 'electron/main'
 import fs from 'fs'
 import md5 from 'js-md5'
 import Store from 'electron-store';
-import { get } from 'http'
-import { tr } from 'element-plus/lib/locale/index.js'
 
 const store = new Store();
 process.on('uncaughtException', function (err) {
     dialog.showErrorBox('Error', err.message)
+    console.log(err);
+
 })
 app.commandLine.appendSwitch('wm-window-animations-disabled');
 /**
@@ -129,12 +129,15 @@ ipcMain.on('mainWindow', (event, arg) => {
     } else if (arg.data == 'getAppList') {
         appList = getAppList()
         appListRecent = store.get('appListRecent', []).map(id => appList.find(item => item.id == id))
+        appListRecent = appListRecent.filter(item => item)
         event.returnValue = appList
     } else if (arg.data == 'openApp') {
         openApp(arg.id)
     } else if (arg.data == 'getAppListRecent') {
-        console.log(appListRecent.map(item => item.name));
-        event.returnValue = appListRecent.reverse()
+        // console.log(appListRecent);
+
+        // console.log(appListRecent.map(item => item.name));
+        event.returnValue = appListRecent.toReversed()
     }
 })
 
@@ -148,6 +151,9 @@ function getAppList() {
     const plugins = fs.readdirSync(path.join(__dirname, '../../resources/plugins'))
     for (const plugin of plugins) {
         try {
+            if (!fs.existsSync(path.join(__dirname, '../../resources/plugins', plugin, 'config.json'))) {
+                continue
+            }
             const config = fs.readFileSync(path.join(__dirname, '../../resources/plugins', plugin, 'config.json')).toString()
             const configJson = JSON.parse(config)
             pluginsList.push({
@@ -162,12 +168,13 @@ function getAppList() {
     return pluginsList
 }
 
-let pid = 0;
+let pid = 10000;
 
 /**
  * @typedef { Object } WindowList
  * @property { BrowserWindow } window
- * @property { number } pid
+ * @property { number } pid 插件的pid，运行时id
+ * @property { number } id 插件的id
  */
 
 /**
@@ -175,11 +182,11 @@ let pid = 0;
  */
 let windowList = []
 /**
- * 加载插件
- * @param {Electron.BrowserViewConstructorOptions} options 
- * @param {string} url 
+ * 启动插件
+ * @param {string} id 插件id
  */
 function openApp(id) {
+    mainWindow.hide()
     const appItem = appList.find(item => item.id == id)
     for (let i = 0; i < appListRecent.length; i++) {
         if (appListRecent[i].id == id) {
@@ -190,12 +197,28 @@ function openApp(id) {
         appListRecent.shift()
     }
     appListRecent.push(appItem)
-
     store.set('appListRecent', appListRecent.map(item => item.id))
-    const window = new BrowserWindow(appItem.windowOptions)
-    window.loadURL(path.join(appItem.path, appItem.entry))
-    windowList.push({ window, pid })
-    pid = pid + 1
+    if (appItem.startType.toLowerCase() == 'html') {
+        let window = new BrowserWindow({
+            show: false, webPreferences: {
+                preload: path.join(__dirname, '../preload/index.js'),
+                sandbox: false,
+                webSecurity: false
+            }, ...appItem.windowOptions
+        })
+        window.loadFile(path.join(appItem.path, appItem.entry), {
+            query: { pid: pid }
+        })
+        windowList.push({ window, pid, id: appItem.id })
+        window.on('ready-to-show', () => {
+            window.show()
+        })
+        window.on('close', () => {
+            windowList = windowList.filter(item => item.pid != pid)
+        })
+
+        pid = pid + 1
+    }
 }
 // store.clear('appListRecent')
 
@@ -235,10 +258,10 @@ function getSettingsList() {
         path: 'launcher',
         settings: JSON.parse(fs.readFileSync(launcherSettingsPath).toString())
     }]
-    
+
     appList.forEach(item => {
         try {
-            if(!fs.existsSync(path.join(item.path, 'settings.json'))) {
+            if (!fs.existsSync(path.join(item.path, 'settings.json'))) {
                 return
             }
             const settings = fs.readFileSync(path.join(item.path, 'settings.json')).toString()
@@ -255,12 +278,12 @@ function getSettingsList() {
     return settingsList
 }
 ipcMain.on('settingsWindow', (event, arg) => {
-    if(arg.data == 'getSettingsList') {
+    if (arg.data == 'getSettingsList') {
         // console.log(getSettingsList());
         event.returnValue = getSettingsList()
-    } else if(arg.data == 'saveSettings') {
+    } else if (arg.data == 'saveSettings') {
         try {
-            if(arg.path == 'launcher') {
+            if (arg.path == 'launcher') {
                 fs.writeFileSync(launcherSettingsPath, arg.settings)
             } else {
                 fs.writeFileSync(path.join(arg.path, 'settings.json'), arg.settings)
@@ -270,5 +293,32 @@ ipcMain.on('settingsWindow', (event, arg) => {
             event.returnValue = error
             console.log(error);
         }
+    }
+})
+
+ipcMain.on('appWindow', (event, arg) => {
+    if (arg.data == 'closeWindow') {
+        const window = windowList.find(item => item.pid == arg.pid)
+        if (window) {
+            window.window.close()
+        }
+    } else if(arg.data == 'callWindowMethod'){
+        const window = windowList.find(item => item.pid == arg.pid)
+        if (window) {
+            const res = window.window[arg.method](...arg.args)
+            event.returnValue = res
+        }
+    } else if(arg.data == 'getWindowProperty'){
+        const window = windowList.find(item => item.pid == arg.pid)
+        if (window) {
+            const res = window.window[arg.property]
+            event.returnValue = res
+        }
+    } else if(arg.data == 'getPluginSettings'){
+        const window = windowList.find(item => item.pid == arg.pid)
+        const appItem = appList.find(item => item.id == window.id)
+        const settings = fs.readFileSync(path.join(appItem.path, 'settings.json')).toString()
+        const settingsJson = JSON.parse(settings)
+        event.returnValue = settingsJson[arg.settingName].value
     }
 })
