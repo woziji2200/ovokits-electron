@@ -7,8 +7,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const params = new URLSearchParams(window.location.search);
 const page = params.get('page');
-if(page == 'settings'){
+if (page == 'settings') {
     router.push('settings')
+} else if (page == '') {
+
 }
 console.log('poge', page);
 
@@ -16,7 +18,7 @@ console.log('poge', page);
 </script>
 
 <style>
-body{
+body {
     margin: 0;
 }
 </style>

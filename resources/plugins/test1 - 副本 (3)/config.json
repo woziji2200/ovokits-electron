@@ -15,7 +15,6 @@
         "resizable": true,
         "alwaysOnTop": false,
         "frame": true,
-        "show": true,
         "center": true,
         "title": "Test Plugin 1"
     }
