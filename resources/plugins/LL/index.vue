@@ -1,13 +1,3 @@
-<!-- <template>
-    <div class="translator">
-        
-    </div>
-</template> -->
-
-<!-- <script setup>
-import { ref } from 'vue'
-const count = ref(0)
-</script> -->
 <template>
   <div class="translator">
     <h1>翻译器</h1>
@@ -17,29 +7,38 @@ const count = ref(0)
     <select v-model="targetLanguage">
       <option value="en">英语</option>
       <option value="zh">汉语</option>
-      <option value="ko">朝鲜语</option>
-      <option value="es">西班牙语</option>
-      <option value="fr">法语</option>
+      <!-- <option value="ko">朝鲜语</option> -->
+      <option value="spa">西班牙语</option>
+      <option value="fra">法语</option>
       <option value="de">德语</option>
       <!-- 待添加更多语言选项 -->
     </select>
 
     <!-- 翻译按钮 -->
-    <button @click="translateText">翻译</button>
-    <!-- <button @click="testAwait">测试</button> -->
+    <button @click="translateText">Deepl翻译</button>
+    <button @click="transText">百度翻译</button>
+
 
     <!-- 翻译结果 -->
-    <div v-if="translatedText || testContent" class="result">
-      <h2>翻译结果</h2>
+    <div v-if="translatedText || translatedText_1" class="result">
+      <h2>DeepL翻译结果</h2>
       <p>{{ translatedText }}</p>
+
+      <h2>百度翻译结果</h2>
+      <p>{{ translatedText_1 }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
+// import { app } from 'electron';
+
 
 const { ref } = require('vue');
 const axios = require('../_libs/axios.js');
+// const md5 = require('../_libs/md5.js')
+// const md5 = require('../_libs/md5.min.js')
+// import { md5 } from './md5.js';
 // import axios from '../_libs/axios/axios'
 // import "../_libs/axios/dist/axios"
 
@@ -47,36 +46,13 @@ const axios = require('../_libs/axios.js');
 const text = ref('')
 const targetLanguage = ref('zh')
 const translatedText = ref('')
+const translatedText_1 = ref('')
 const sourceLanguage = ref('')  //识别输入内容的语言
-// const testContent = ref('')
 
+const appid = '20241106002195901'
+const key = 'CGnCZrdxYoOplaNBEK8Q'
 
 const Deepl_AuthKey = '995e054d-bb05-4d08-a2d2-439c47880c0d:dp'
-
-// 测试请求
-const testAwait = async () => {
-  try{
-    const response = await axios.post(
-      'https://jsonplaceholder.typicode.com/posts',
-      {
-        title: 'test',
-        body: 'test内容',
-        userId: 1,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    console.log("请求成功，返回数据:", response.data);
-    testContent.value = JSON.stringify(response.data, null, 2);
-  } catch(error){
-    console.error("请求失败:", error.message);
-    testContent.value = "请求失败请检查控制台";
-  }
-}
 
 // 翻译文本
 const translateText = async () => {
@@ -104,8 +80,6 @@ const translateText = async () => {
                 }
             }
         );
-        // console.log("得到: ", response.data.translations);
-        // console.log("得到: ", response.data.translations[0].text);
         translatedText.value = response.data.translations[0].text;
         sourceLanguage.value = response.data.translations[0].detected_source_language;
       
@@ -114,7 +88,50 @@ const translateText = async () => {
     console.error("翻译失败:", error.message);
     translatedText.value = "翻译失败，请重试。";
     sourceLanguage.value = '';
-  }
+    }
+}
+
+
+const getSign = (salt) => {
+    const signString = appid + text.value + salt + key;
+    const resSign = window.api.md5(signString);
+    return resSign;
+};
+
+
+const transText = async () =>{
+    if(!text.value){
+        translatedText_1.value = "请输入内容进行翻译！";
+        return;
+    }
+
+    try{
+        const salt = Date.now().toString();
+        
+        const response = await axios.post(
+            'https://fanyi-api.baidu.com/api/trans/vip/translate',
+            {
+              appid: appid,
+              q: encodeURIComponent(text.value),
+              from: 'auto',
+              to: targetLanguage.value,
+              salt: salt,
+              sign: getSign(salt),
+            },
+            {
+                headers:{
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }
+        );
+
+        console.log("翻译结果: ", response.data);
+        translatedText_1.value = response.data.trans_result[0].dst;
+    }catch (error) {
+    console.error("翻译失败:", error.message);
+    translatedText_1.value = "翻译失败，请重试。";
+    sourceLanguage.value = '';
+    }
 }
 
 
