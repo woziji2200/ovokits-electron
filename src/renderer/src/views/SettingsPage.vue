@@ -3,7 +3,7 @@
         <el-container style="height: 100%;">
             <el-aside width="200px">
                 <el-menu active-text-color="#ffd04b" background-color="#545c64" class="el-menu-vertical-demo"
-                    :default-active="0" text-color="#fff" style="height: 100%;padding-top: 10px;">
+                    :default-active="defaultActive" text-color="#fff" style="height: 100%;padding-top: 10px;">
                     <el-menu-item class="el-menu-item" v-for="(i, index) in plugins" :index="index"
                         @click="currentPluginSettings = i">
                         <div style="text-align: center;">{{ i.name }}</div>
@@ -36,6 +36,11 @@
                                         </el-option>
                                     </el-select>
                                 </div>
+                                <div v-if="settingValue.type == 'checkbox'">
+                                    <el-checkbox v-model="settingValue.value" :label="settingValue.label" border />
+                                </div>
+
+
                             </el-card>
                         </div>
 
@@ -47,10 +52,7 @@
                     </div>
                 </el-footer>
             </el-container>
-
         </el-container>
-
-
     </div>
 </template>
 
@@ -64,8 +66,18 @@ const search = ref('')
 const plugins = ref([])
 plugins.value=plugins.value.concat(ipcRenderer.sendSync('settingsWindow', { data: 'getSettingsList' }))
 console.log(plugins.value);
-
+const params = new URLSearchParams(window.location.search);
+const pluginId = params.get('pluginId');
 const currentPluginSettings = ref(plugins.value[0])
+const defaultActive = ref(0)
+if (pluginId) {
+    const plugin = plugins.value.find(i => i.id == pluginId)
+    console.log(plugins.value);   
+    if (plugin) {
+        currentPluginSettings.value = plugin
+        defaultActive.value = plugins.value.indexOf(plugin)
+    }
+}
 function searchSetting(settings) {
     if(search.value == '') {
         return settings
@@ -92,6 +104,11 @@ function save() {
         path: currentPluginSettings.value.path,
         settings: JSON.stringify(currentPluginSettings.value.settings,null, 4)
     })
+    if(currentPluginSettings.value.path == 'launcher'){
+        ipcRenderer.send('settingsWindow', {
+            data: 'reloadSettings'
+        })
+    }
     if(res == 'success') {
         ElNotification({
             title: '保存成功',

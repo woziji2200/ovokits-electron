@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, shell } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import fs from 'fs'
 import path from 'path'
@@ -25,7 +25,8 @@ const api = {
         return ipcRenderer.sendSync('appWindow', { data: 'getPluginSettings', pid, settingName })
     },
     md5: md5,
-
+    fs: fs,
+    shell
 }
 
 

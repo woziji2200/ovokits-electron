@@ -225,11 +225,11 @@ function openApp(id) {
 // store.clear('appListRecent')
 
 
-function openSettingsWindow() {
+function openSettingsWindow(pluginId) {
     let settingsWindow = null
     settingsWindow = new BrowserWindow({
-        width: 800,
-        height: 500,
+        width: 1000,
+        height: 700,
         show: false,
         autoHideMenuBar: true,
         // transparent: true,
@@ -242,10 +242,10 @@ function openSettingsWindow() {
         },
     })
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-        settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '?page=settings')
+        settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + `?page=settings&pluginId=${pluginId}`)
     } else {
         settingsWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
-            query: { page: 'settings' }
+            query: { page: 'settings', pluginId: pluginId }
         })
     }
     settingsWindow.on('ready-to-show', () => {
@@ -300,6 +300,7 @@ function getSettingsList() {
             const settings = fs.readFileSync(path.join(item.path, 'settings.json')).toString()
             const settingsJson = JSON.parse(settings)
             settingsList.push({
+                id: item.id,
                 name: item.name,
                 path: item.path,
                 settings: settingsJson
@@ -325,6 +326,19 @@ ipcMain.on('settingsWindow', (event, arg) => {
         } catch (error) {
             event.returnValue = error
             console.log(error);
+        }
+    } else if(arg.data == 'reloadSettings'){
+        const settings = JSON.parse(fs.readFileSync(launcherSettingsPath).toString())
+        if(settings['开机自启动'].value){
+            app.setLoginItemSettings({
+                openAtLogin: true,
+                openAsHidden: true
+            })
+        } else {
+            app.setLoginItemSettings({
+                openAtLogin: false,
+                openAsHidden: false
+            })
         }
     }
 })
@@ -359,5 +373,7 @@ ipcMain.on('appWindow', (event, arg) => {
 ipcMain.on('managementWindow', (event, arg) => {
     if (arg.data == 'getPluginList') {
         event.returnValue = getAppList()
+    } else if(arg.data == 'openSettingsWindow') {
+        openSettingsWindow(arg.id)
     }
 })
