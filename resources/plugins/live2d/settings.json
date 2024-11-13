@@ -1,0 +1,15 @@
+{
+    "Live2D桌宠配置": {
+        "type": "divider"
+    },
+    "启动器设置2": {
+        "type": "select",
+        "desc": "模型选择",
+        "value": "live2d官方示例1",
+        "options": [
+            "live2d官方示例1",
+            "选项2",
+            "选项3"
+        ]
+    }
+}

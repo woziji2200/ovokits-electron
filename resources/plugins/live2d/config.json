@@ -1,0 +1,21 @@
+{
+    "name": "Live2D桌宠",
+    "version": "1.0.0",
+    "desc": "一个小小的Live2D桌宠",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "滑小稽",
+    "singleton": true,
+    "logo":"logo.png",
+    "windowOptions": {
+        "width": 150,
+        "height": 400,  
+        "alwaysOnTop": true,
+        "frame": false,
+        "center": false,
+        "title": "Live2D",
+        "transparent": true,
+        "autoHideMenuBar": true
+
+    }
+}

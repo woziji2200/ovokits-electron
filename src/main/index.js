@@ -7,6 +7,7 @@ import fs from 'fs'
 import md5 from 'js-md5'
 import Store from 'electron-store';
 
+
 const store = new Store();
 process.on('uncaughtException', function (err) {
     dialog.showErrorBox('Error', err.message)
@@ -163,6 +164,7 @@ function getAppList() {
                 path: path.join(__dirname, '../../resources/plugins', plugin),
                 ...configJson
             })
+            // console.log(path.join(__dirname, '../../resources/plugins', plugin));
         } catch (error) {
             console.error(error)
         }
@@ -190,6 +192,15 @@ let windowList = []
 function openApp(id) {
     mainWindow.hide()
     const appItem = appList.find(item => item.id == id)
+    if (appItem.singleton) {
+        for (let i = 0; i < windowList.length; i++) {
+            if (windowList[i].id == id) {
+                windowList[i].window.show()
+                return
+            }
+        }
+    }
+
     for (let i = 0; i < appListRecent.length; i++) {
         if (appListRecent[i].id == id) {
             appListRecent.splice(i, 1)
@@ -201,24 +212,30 @@ function openApp(id) {
     appListRecent.push(appItem)
     store.set('appListRecent', appListRecent.map(item => item.id))
     if (appItem.startType.toLowerCase() == 'html') {
-        let window = new BrowserWindow({
-            show: false, webPreferences: {
-                preload: path.join(__dirname, '../preload/index.js'),
-                sandbox: false,
-                webSecurity: false
-            }, ...appItem.windowOptions
-        })
-        window.loadFile(path.join(appItem.path, appItem.entry), {
-            query: { pid: pid }
-        })
-        windowList.push({ window, pid, id: appItem.id })
-        window.on('ready-to-show', () => {
-            window.show()
-        })
-        window.on('close', () => {
-            windowList = windowList.filter(item => item.pid != pid)
-        })
-
+        function a() {
+            return function () {
+                const currentPid = pid
+                let window = new BrowserWindow({
+                    icon: appItem.logo ? path.join(appItem.path, appItem.logo) : icon,
+                    show: false, webPreferences: {
+                        preload: path.join(__dirname, '../preload/index.js'),
+                        sandbox: false,
+                        webSecurity: false
+                    }, ...appItem.windowOptions
+                })
+                window.loadFile(path.join(appItem.path, appItem.entry), {
+                    query: { pid: pid }
+                })
+                windowList.push({ window, pid, id: appItem.id })
+                window.on('ready-to-show', () => {
+                    window.show()
+                })
+                window.on('close', () => {
+                    windowList = windowList.filter(item => item.pid != currentPid)
+                })
+            }
+        }
+        a()()
         pid = pid + 1
     }
 }
@@ -327,9 +344,9 @@ ipcMain.on('settingsWindow', (event, arg) => {
             event.returnValue = error
             console.log(error);
         }
-    } else if(arg.data == 'reloadSettings'){
+    } else if (arg.data == 'reloadSettings') {
         const settings = JSON.parse(fs.readFileSync(launcherSettingsPath).toString())
-        if(settings['开机自启动'].value){
+        if (settings['开机自启动'].value) {
             app.setLoginItemSettings({
                 openAtLogin: true,
                 openAsHidden: true
@@ -373,7 +390,7 @@ ipcMain.on('appWindow', (event, arg) => {
 ipcMain.on('managementWindow', (event, arg) => {
     if (arg.data == 'getPluginList') {
         event.returnValue = getAppList()
-    } else if(arg.data == 'openSettingsWindow') {
+    } else if (arg.data == 'openSettingsWindow') {
         openSettingsWindow(arg.id)
     }
 })
