@@ -44,7 +44,7 @@ const axios = require('../_libs/axios.js');
 
 
 const text = ref('')
-const targetLanguage = ref('zh')
+const targetLanguage = ref('en')
 const translatedText = ref('')
 const translatedText_1 = ref('')
 const sourceLanguage = ref('')  //识别输入内容的语言
@@ -112,7 +112,8 @@ const transText = async () =>{
             'https://fanyi-api.baidu.com/api/trans/vip/translate',
             {
               appid: appid,
-              q: encodeURIComponent(text.value),
+              //q: encodeURIComponent(text.value),
+              q: text.value,
               from: 'auto',
               to: targetLanguage.value,
               salt: salt,
