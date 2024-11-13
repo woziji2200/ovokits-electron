@@ -3,29 +3,32 @@ import { electronAPI } from '@electron-toolkit/preload'
 import fs from 'fs'
 import path from 'path'
 import md5 from 'js-md5'
+import md5 from 'js-md5'
+
 
 // const getApi = (window) => {
 //     return new api(window)
 // }
 const api = {
-    getWindowPid(window){
+    getWindowPid(window) {
         const params = new URLSearchParams(window.location.search)
         return params.get('pid')
     },
     closeWindow(pid) {
         ipcRenderer.send('appWindow', { data: 'closeWindow', pid })
     },
-    callWindowMethod(pid, method, ...args){
+    callWindowMethod(pid, method, ...args) {
         return ipcRenderer.sendSync('appWindow', { data: 'callWindowMethod', pid, method, args })
     },
-    getWindowProperty(pid, property){
+    getWindowProperty(pid, property) {
         return ipcRenderer.sendSync('appWindow', { data: 'getWindowProperty', pid, property })
     },
-    getPluginSettings(pid, settingName){
+    getPluginSettings(pid, settingName) {
         return ipcRenderer.sendSync('appWindow', { data: 'getPluginSettings', pid, settingName })
     },
     md5: md5,
-
+,
+    md5: md5,
 }
 
 
