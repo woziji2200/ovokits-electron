@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import fs from 'fs'
 import path from 'path'
-
+import md5 from 'js-md5'
 
 // const getApi = (window) => {
 //     return new api(window)
@@ -23,7 +23,9 @@ const api = {
     },
     getPluginSettings(pid, settingName){
         return ipcRenderer.sendSync('appWindow', { data: 'getPluginSettings', pid, settingName })
-    }
+    },
+    md5: md5,
+
 }
 
 

@@ -9,8 +9,8 @@ const params = new URLSearchParams(window.location.search);
 const page = params.get('page');
 if (page == 'settings') {
     router.push('settings')
-} else if (page == '') {
-
+} else if (page == 'management') {
+    router.push('management')
 }
 console.log('poge', page);
 
