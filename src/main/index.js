@@ -40,7 +40,7 @@ function createMainWindow() {
     tray.setContextMenu(Menu.buildFromTemplate([
         { label: "显示", click: () => { mainWindow.show() } },
         { label: "插件设置", click: () => { openSettingsWindow() } },
-        { label: "插件管理", click: () => { openManagementWindow() } },
+        { label: "插件市场", click: () => { openManagementWindow() } },
         { label: "重启OvO Kits", click: () => { app.relaunch() } },
         { label: "退出OvO Kits", click: () => { app.exit() } },
     ]))
@@ -240,17 +240,24 @@ function openApp(id) {
     }
 }
 // store.clear('appListRecent')
-
-
+/**
+ * @type { BrowserWindow }
+ */
+let settingsWindow = null
 function openSettingsWindow(pluginId) {
-    let settingsWindow = null
+    if (settingsWindow) {
+        settingsWindow.show()
+        return
+    }
     settingsWindow = new BrowserWindow({
         width: 1000,
         height: 700,
+        minWidth: 600,
+        minHeight: 400,
         show: false,
         autoHideMenuBar: true,
         // transparent: true,
-        // frame: false,
+        frame: false,
         ...(process.platform === 'linux' ? { icon } : {}),
         webPreferences: {
             preload: path.join(__dirname, '../preload/index.js'),
@@ -268,17 +275,28 @@ function openSettingsWindow(pluginId) {
     settingsWindow.on('ready-to-show', () => {
         settingsWindow.show()
     })
+    settingsWindow.on('close', () => {
+        settingsWindow = null
+    })
 }
-
+/**
+ * @type { BrowserWindow }
+ */
+let managementWindow = null
 function openManagementWindow() {
-    let managementWindow = null
+    if (managementWindow) {
+        managementWindow.show()
+        return
+    }
     managementWindow = new BrowserWindow({
         width: 1000,
         height: 700,
+        minHeight: 400,
+        minWidth: 600,
         show: false,
         autoHideMenuBar: true,
         // transparent: true,
-        // frame: false,
+        frame: false,
         ...(process.platform === 'linux' ? { icon } : {}),
         webPreferences: {
             preload: path.join(__dirname, '../preload/index.js'),
@@ -296,8 +314,10 @@ function openManagementWindow() {
     }
     managementWindow.on('ready-to-show', () => {
         managementWindow.show()
-    }
-    )
+    })
+    managementWindow.on('close', () => {
+        managementWindow = null
+    })
 }
 
 
@@ -357,6 +377,11 @@ ipcMain.on('settingsWindow', (event, arg) => {
                 openAsHidden: false
             })
         }
+    } else if (arg.data == 'ctrlWindow') {
+        if (arg.type == 'close') settingsWindow.close()
+        else if (arg.type == 'minimize') settingsWindow.minimize()
+        else if (arg.type == 'maximize' && settingsWindow.isMaximized()) settingsWindow.unmaximize()
+        else if (arg.type == 'maximize'&& !settingsWindow.isMaximized()) settingsWindow.maximize()
     }
 })
 
@@ -392,5 +417,10 @@ ipcMain.on('managementWindow', (event, arg) => {
         event.returnValue = getAppList()
     } else if (arg.data == 'openSettingsWindow') {
         openSettingsWindow(arg.id)
+    } else if (arg.data == 'ctrlWindow') {
+        if (arg.type == 'close') managementWindow.close()
+        else if (arg.type == 'minimize') managementWindow.minimize()
+        else if (arg.type == 'maximize' && managementWindow.isMaximized()) managementWindow.unmaximize()
+        else if (arg.type == 'maximize'&& !managementWindow.isMaximized()) managementWindow.maximize()
     }
 })

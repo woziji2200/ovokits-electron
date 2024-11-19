@@ -1,4 +1,5 @@
 <template>
+    <Titlebar title="插件市场" window="managementWindow"></Titlebar>
     <el-tabs v-model="activeTab" class="tabs" type="border-card">
         <el-tab-pane label="已安装的插件" name="first">
             <el-input v-model="localPluginSearch" placeholder="搜索"></el-input>
@@ -60,7 +61,8 @@
 <script setup>
 import { ElMessage } from 'element-plus';
 import { ref, watch } from 'vue'
-
+import Titlebar from '../components/Titlebar.vue';
+document.title = '插件市场'
 const activeTab = ref('first')
 const localPluginSearch = ref('')
 const ipcRenderer = window.electron.ipcRenderer
@@ -131,7 +133,7 @@ body {
 .tabs {
     /* margin: 20px; */
     /* margin-top: 10px; */
-    height: calc(100vh - 2px);
+    height: calc(100vh - 42px);
     overflow: auto;
 }
 

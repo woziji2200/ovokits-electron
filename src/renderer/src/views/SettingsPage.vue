@@ -1,16 +1,17 @@
 <template>
+    <Titlebar title="插件市场" window="settingsWindow"></Titlebar>
     <div class="main">
-        <el-container style="height: 100%;">
+        <el-container >
             <el-aside width="200px">
-                <el-menu active-text-color="#ffd04b" background-color="#545c64" class="el-menu-vertical-demo"
-                    :default-active="defaultActive" text-color="#fff" style="height: 100%;padding-top: 10px;">
+                <el-menu active-text-color="#0073ff" active-background-color="#0010ff" background-color="#fff" class="el-menu-vertical-demo"
+                    :default-active="defaultActive" text-color="#666" style="height: 100%;padding-top: 10px;">
                     <el-menu-item class="el-menu-item" v-for="(i, index) in plugins" :index="index"
                         @click="currentPluginSettings = i">
                         <div style="text-align: center;">{{ i.name }}</div>
                     </el-menu-item>
                 </el-menu>
             </el-aside>
-            <el-container style="height: 100vh;">
+            <el-container style="height: calc(100vh - 41px);">
                 <el-header>
                     <div class="search">
                         <span>搜索设置项：</span>
@@ -60,6 +61,7 @@
 <script setup>
 import { ref } from 'vue'
 import { ElNotification } from 'element-plus'
+import Titlebar from '../components/Titlebar.vue';
 const ipcRenderer = window.electron.ipcRenderer
 document.title = '插件设置'
 const search = ref('')
@@ -126,8 +128,9 @@ function save() {
 
 <style scoped>
 .main {
-    /* height: 100vh; */
+    /* height: calc(100vh - 42px); */
     /* width: 100vw; */
+    border-top: solid 1px #ddd;
     position: relative;
 }
 
@@ -137,6 +140,7 @@ function save() {
 
 .setting-card * {
     padding: 5px;
+    /* color: #0073ff; */
 }
 
 .setting-title {
