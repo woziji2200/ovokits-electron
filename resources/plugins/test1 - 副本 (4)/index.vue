@@ -18,5 +18,9 @@ console.log(window.api.md5('123456'));
 const api = window.api
 const pid = api.getWindowPid(window)
 console.log(api.getPluginSettings(pid,'启动器设置2')); 
+api.on(pid, 'move', () => {
+    console.log('窗口移动位置');
+})
+
 
 </script>

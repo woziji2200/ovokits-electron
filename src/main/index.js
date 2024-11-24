@@ -409,6 +409,11 @@ ipcMain.on('appWindow', (event, arg) => {
         const settings = fs.readFileSync(path.join(appItem.path, 'settings.json')).toString()
         const settingsJson = JSON.parse(settings)
         event.returnValue = settingsJson[arg.settingName].value
+    } else if(arg.data == 'onWindowEvent') {
+        const window = windowList.find(item => item.pid == arg.pid).window
+        if (window) {
+            window.on(arg.event, arg.callback)
+        }
     }
 })
 

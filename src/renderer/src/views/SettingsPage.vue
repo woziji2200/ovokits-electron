@@ -1,5 +1,5 @@
 <template>
-    <Titlebar title="插件市场" window="settingsWindow"></Titlebar>
+    <Titlebar title="插件设置" window="settingsWindow"></Titlebar>
     <div class="main">
         <el-container >
             <el-aside width="200px">

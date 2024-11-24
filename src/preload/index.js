@@ -24,6 +24,9 @@ const api = {
     getPluginSettings(pid, settingName) {
         return ipcRenderer.sendSync('appWindow', { data: 'getPluginSettings', pid, settingName })
     },
+    onWindowEvent(pid, event, callback) {
+        ipcRenderer.send('appWindow', { data: 'onWindowEvent', pid, event })
+    },
     md5: md5,
     fs: fs,
     shell
