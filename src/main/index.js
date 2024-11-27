@@ -31,7 +31,8 @@ function createMainWindow() {
         webPreferences: {
             preload: path.join(__dirname, '../preload/index.js'),
             sandbox: false,
-            webSecurity: false
+            webSecurity: false,
+            experimentalFeatures: true
         },
         alwaysOnTop: true,
     })
@@ -404,6 +405,12 @@ ipcMain.on('appWindow', (event, arg) => {
             event.returnValue = res
         }
     } else if (arg.data == 'getPluginSettings') {
+        if(arg.pid == 'launcher') {
+            const settings = fs.readFileSync(launcherSettingsPath).toString()
+            const settingsJson = JSON.parse(settings)
+            event.returnValue = settingsJson[arg.settingName].value
+            return
+        }
         const window = windowList.find(item => item.pid == arg.pid)
         const appItem = appList.find(item => item.id == window.id)
         const settings = fs.readFileSync(path.join(appItem.path, 'settings.json')).toString()

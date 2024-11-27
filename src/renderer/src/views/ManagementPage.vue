@@ -122,7 +122,21 @@ function openPluginSetting(id) {
 }
 
 .el-tabs__content {
-    background-color: #f0f2f5;
+    /* background-color: #f0f2f5; */
+}
+
+.el-tabs {
+    background-image: linear-gradient(to right, #f7faff, #fff) !important;
+}
+.el-tabs__header {
+    background-color: transparent !important;
+}
+.el-tabs__item.is-active{
+    background-color: #ffffff90 !important;
+}
+.el-input__wrapper{
+    background-color: #ffffff90 !important;
+
 }
 
 body {
@@ -145,14 +159,15 @@ body {
 .plugin {
     height: 140px;
     margin: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ccccccb2;
     border-radius: 5px;
-    box-shadow: 0 0 5px #ccc;
+    box-shadow: 0 0 5px #cdcdcd78;
     display: flex;
-    background-color: #fff;
+    background-color: #ffffff8d;
     position: relative;
     overflow: hidden;
     transition: all 0.2s;
+    backdrop-filter: blur(10px);
 }
 
 .plugin:hover .plugin-ghost {

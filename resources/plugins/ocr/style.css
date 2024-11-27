@@ -15,19 +15,21 @@
     background-color: #f9f9f9;
 }
 
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('./img/2.png') no-repeat center center;
+    background-size: cover;
+}
+
 #image-container {
     position: relative;
     display: inline-block;/* style.css */
 
-    body {
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: url('img/background.jpg') no-repeat center center;
-        background-size: cover;
-    }
+
     
     .container {
         width: 80%;
