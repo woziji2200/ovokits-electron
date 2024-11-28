@@ -23,10 +23,12 @@
             <div class="search-res">
                 <div v-for="i in appShow" :id="i.id"
                     :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)">
-                    <img :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
+                    <img v-if="i.startType != 'file'" :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
+                    <i class="file-icon" v-if="i.startType =='file'" :class="getClassWithColor(i.name)"></i>
                     <div class="res-item-title">
                         <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
-                        <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)"></div>
+                        <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)">
+                        </div>
                     </div>
                 </div>
 
@@ -38,17 +40,21 @@
                     最近没有使用过任何插件哦
                 </div>
             </div>
-        </div> 
+        </div>
 
 
     </div>
 </template>
+<style>
+@import url('../../../../node_modules/file-icons-js/css/style.css');
+</style>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import Fuse from 'fuse.js'
+import { getClass, getClassWithColor } from 'file-icons-js'
 
-const api =  window.api
+const api = window.api
 const pid = 'launcher'
 const windowStyle = api.getPluginSettings(pid, '启动器风格')
 const className = ref()
@@ -58,6 +64,7 @@ className.value = {
     "透明黑色": "style-blur",
 }[windowStyle]
 console.log(className.value);
+
 
 
 const ipcRenderer = window.electron.ipcRenderer
@@ -75,6 +82,9 @@ ipcRenderer.on('mainWindow', (event, arg) => {
     }
 })
 
+// console.log(getClass('index.jsx'));
+
+
 
 function mouseenter() {
     ipcRenderer.send('mainWindow', {
@@ -89,6 +99,7 @@ function mouseleave() {
 
 const app = ref([])
 app.value = ipcRenderer.sendSync('mainWindow', { data: 'getAppList' })
+console.log(app);
 
 
 const appRecent = ref([])
@@ -113,17 +124,24 @@ watch(appSearch, (newVal, oldVal) => {
     const fuse = new Fuse(app.value, {
         keys: ['name', 'desc'],
     })
-    appShow.value = fuse.search(newVal).map(i => i.item)
-    console.log(appShow.value);
+    appShow.value = fuse.search(newVal, { limit: 10 }).map(i => i.item)
+    // console.log(appShow.value);
     appSelect.value = appShow.value[0]?.id || '-1'
-    console.log(appSelect.value, appShow.value[0]?.id);
+    // console.log(appSelect.value, appShow.value[0]?.id);
 
 }, { immediate: true })
 
 
-const searchHighlight = (value, searchValue, id, isTitle) => {
+const searchHighlight = (value = '', searchValue, id, isTitle) => {
+    
     const appItem = appShow.value.find(i => i.id == id)
     const highlight = value.replace(new RegExp(searchValue, 'i'), (text) => `<span class="highlight">${text}</span>`)
+
+    if(appItem.startType == 'file' && isTitle) {
+        return '<span>文件：</span>' + highlight + (appSelect.value == id ? '&nbsp;&nbsp;<span style="color: var(--title-2)">Enter to select</span>' : '')
+    } else if(appItem.startType == 'file' && !isTitle) {
+        return appItem.path
+    }
     if (isTitle) {
         return highlight + (appSelect.value == id ? '&nbsp;&nbsp;<span style="color: var(--title-2)">Enter to select</span>' : '')
     } else {
@@ -160,7 +178,7 @@ const openPlugin = (id) => {
 </script>
 
 <style>
-.style-white{
+.style-white {
     --hight-color: #98b9ff;
     --select-bg: #f1f1f1;
     --search-input-bg: #fff;
@@ -173,7 +191,7 @@ const openPlugin = (id) => {
     --search-send-color: #555;
 }
 
-.style-black{
+.style-black {
     --hight-color: #6578a0;
     --select-bg: #4b4b4b;
     --search-input-bg: #333;
@@ -186,7 +204,7 @@ const openPlugin = (id) => {
     --search-send-color: #fff;
 }
 
-.style-blur{
+.style-blur {
     --hight-color: #5ec1ff;
     --select-bg: #00000074;
     --search-input-bg: #00000074;
@@ -195,13 +213,15 @@ const openPlugin = (id) => {
     --search-send-bg-hover: #000000;
     --select-bg-hover: #00000074;
     --title-1: #fff;
-    --title-2: #fff;
+    --title-2: #ffffffa9;
     --search-send-color: #fff;
 }
-.style-blur .input::placeholder{
+
+.style-blur .input::placeholder {
     /* placeholder color */
     color: #fff;
 }
+
 .style-blur * {
     text-shadow: 0 0 10px #000;
 }
@@ -231,6 +251,21 @@ const openPlugin = (id) => {
 </style>
 
 <style scoped>
+.file-icon {
+    width: 40px;
+    height: 40px;
+    margin: 10px;
+    margin-right: 10px;
+    font-weight: bolder;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: normal;
+}
+.file-icon::before {
+    font-size: 26px;
+}
+
 .search {
     background-color: var(--search-input-bg);
     border-radius: 5px;
@@ -288,6 +323,7 @@ const openPlugin = (id) => {
     width: 20px;
     height: 20px;
 }
+
 .search .send svg path {
     fill: var(--search-send-color);
 }
@@ -371,12 +407,21 @@ const openPlugin = (id) => {
     font-size: 18px;
     font-weight: 500;
     color: var(--title-1);
+    /* 不允许换行 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
 }
 
 .res-item-title-2 {
     font-size: 14px;
     font-weight: 100;
     color: var(--title-2);
+    /* 不允许换行 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .res-item-no {
