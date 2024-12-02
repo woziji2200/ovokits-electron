@@ -1,0 +1,15 @@
+{
+    "网络搜索": {
+        "type": "divider"
+    },
+    "搜索引擎": {
+        "type": "select",
+        "desc": "选择搜索使用的搜索引擎",
+        "value": "必应 (Bing)",
+        "options": [
+            "必应 (Bing)",
+            "百度 (Baidu)",
+            "谷歌 (Google)"
+        ]
+    }
+}

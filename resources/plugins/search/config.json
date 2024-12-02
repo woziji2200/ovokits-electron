@@ -1,0 +1,19 @@
+{
+    "name": "网络搜索",
+    "version": "1.0.0",
+    "desc": "ss 网络搜索插件",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "滑小稽",
+    "logo":"logo.png",
+    "windowOptions": {
+        "show": false, 
+        "resizable": true,
+        "alwaysOnTop": false,
+        "frame": true,
+        "center": true,
+        "title": "ss",
+        "autoHideMenuBar": true
+    },
+    "hasParam": true
+}

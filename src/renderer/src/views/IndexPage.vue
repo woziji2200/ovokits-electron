@@ -1,8 +1,12 @@
 <template>
     <div :class="className">
         <div @mouseenter="mouseenter()" @mouseleave="mouseleave()" class="search">
-            <input class="input" spellcheck="false" ref="searchInput" type="text" placeholder="Send to OvOKits~"
-                v-model="appSearch" @keydown="onkeydown">
+            <div class="input-div">
+                <div class="input-tag" v-if="tagPluginChoose?.name">{{ tagPluginChoose?.name }}</div>
+                <input class="input" spellcheck="false" ref="searchInput" type="text" placeholder="Send to OvOKits~"
+                    v-model="appSearch" @keydown="onkeydown">
+            </div>
+
             <div class="send">
                 <svg t="1728460237868" class="icon" viewBox="0 0 1024 1024" version="1.1"
                     xmlns="http://www.w3.org/2000/svg" p-id="4233">
@@ -23,8 +27,9 @@
             <div class="search-res">
                 <div v-for="i in appShow" :id="i.id"
                     :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)">
-                    <img v-if="i.startType != 'file'" :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
-                    <i class="file-icon" v-if="i.startType =='file'" :class="getClassWithColor(i.name)"></i>
+                    <img v-if="i.startType != 'file'"
+                        :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
+                    <i class="file-icon" v-if="i.startType == 'file'" :class="getClassWithColor(i.name)"></i>
                     <div class="res-item-title">
                         <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
                         <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)">
@@ -50,7 +55,7 @@
 </style>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch,getCurrentInstance } from 'vue'
 import Fuse from 'fuse.js'
 import { getClass, getClassWithColor } from 'file-icons-js'
 
@@ -110,8 +115,14 @@ const isAppRencent = ref(true)
 const appShow = ref([])
 const appSearch = ref("")
 const appSelect = ref(0)
-watch(appSearch, (newVal, oldVal) => {
+const tagPluginChoose = ref(null)
 
+const watchSearch = (newVal, oldVal) => {
+    if (tagPluginChoose.value) {
+        appShow.value = [tagPluginChoose.value]
+        appSelect.value = tagPluginChoose.value.id
+        return
+    }
     if (newVal === "") {
         appShow.value = appRecent.value
         isAppRencent.value = true
@@ -129,17 +140,18 @@ watch(appSearch, (newVal, oldVal) => {
     appSelect.value = appShow.value[0]?.id || '-1'
     // console.log(appSelect.value, appShow.value[0]?.id);
 
-}, { immediate: true })
+}
+watch(appSearch, watchSearch, { immediate: true })
 
 
 const searchHighlight = (value = '', searchValue, id, isTitle) => {
-    
+
     const appItem = appShow.value.find(i => i.id == id)
     const highlight = value.replace(new RegExp(searchValue, 'i'), (text) => `<span class="highlight">${text}</span>`)
 
-    if(appItem.startType == 'file' && isTitle) {
+    if (appItem.startType == 'file' && isTitle) {
         return '<span>文件：</span>' + highlight + (appSelect.value == id ? '&nbsp;&nbsp;<span style="color: var(--title-2)">Enter to select</span>' : '')
-    } else if(appItem.startType == 'file' && !isTitle) {
+    } else if (appItem.startType == 'file' && !isTitle) {
         return appItem.path
     }
     if (isTitle) {
@@ -151,10 +163,12 @@ const searchHighlight = (value = '', searchValue, id, isTitle) => {
 
 const onkeydown = (event) => {
     if (event.key == 'ArrowUp') {
+        event.preventDefault()
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) - 1]?.id || appShow.value[appShow.value.length - 1].id
         document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
 
     } else if (event.key == 'ArrowDown') {
+        event.preventDefault()
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) + 1]?.id || appShow.value[0].id
         document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
 
@@ -164,13 +178,30 @@ const onkeydown = (event) => {
         })
     } else if (event.key == 'Enter') {
         openPlugin(appSelect.value)
+    } else if (event.key == 'ArrowRight') {
+        if (!tagPluginChoose.value) {
+            const appNow = appShow.value.find(i => i.id == appSelect.value)
+            console.log(appNow);
+            
+            if (appNow.startType !== 'file' && appNow.hasParam) {
+                tagPluginChoose.value = appNow
+                appSearch.value = ''
+            }
+        }
+    } else if (event.key == 'Backspace') {
+        if (tagPluginChoose.value && searchInput.value.selectionStart == 0 && searchInput.value.selectionEnd == 0) {
+            tagPluginChoose.value = null
+            // 触发watch
+            watchSearch(appSearch.value, appSearch.value)
+        }
     }
 }
 
 const openPlugin = (id) => {
     ipcRenderer.send('mainWindow', {
         data: 'openApp',
-        id: id
+        id: id,
+        param: tagPluginChoose.value ? appSearch.value : null
     })
 }
 
@@ -262,6 +293,7 @@ const openPlugin = (id) => {
     align-items: center;
     font-style: normal;
 }
+
 .file-icon::before {
     font-size: 26px;
 }
@@ -276,6 +308,26 @@ const openPlugin = (id) => {
     /* width: 100%; */
     height: 50px;
     box-shadow: #00000028 0px 0px 10px;
+}
+
+.search .input-div {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.search .input-tag {
+    font-size: 20px;
+    height: 30px;
+    line-height: 30px;
+    font-weight: 100;
+    color: var(--search-input-color);
+    background-color: var(--search-send-bg);
+    border-radius: 5px;
+    padding: 0 10px;
+    margin-left: 10px;
 }
 
 .search .input {

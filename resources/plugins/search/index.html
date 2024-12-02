@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索</title>
+</head>
+
+<script>
+    const param = (new URLSearchParams(window.location.search)).get('param')
+    // const api = window.api
+    const pid = api.getWindowPid(window)
+    api.callWindowMethod(pid, 'hide')
+    const type = api.getPluginSettings(pid, '搜索引擎')
+    if (type === '百度 (Baidu)') api.shell.openExternal('https://www.baidu.com/s?wd=' + param)
+    if (type === '谷歌 (Google)') api.shell.openExternal('https://www.google.com/search?q=' + param)
+    if (type === '必应 (Bing)') api.shell.openExternal('https://cn.bing.com/search?q=' + param)
+    // api.shell.openExternal('https://www.baidu.com/s?wd=' + param)
+    // api.closeWindow(pid)
+    setTimeout(() => {
+        api.closeWindow(pid)
+    }, 2000);
+</script>
+
+<body>
+
+</body>
+</html>

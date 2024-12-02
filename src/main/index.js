@@ -140,7 +140,7 @@ async function main() {
             appListRecent = appListRecent.filter(item => item)
             event.returnValue = appList
         } else if (arg.data == 'openApp') {
-            openApp(arg.id)
+            openApp(arg.id, arg.param)
         } else if (arg.data == 'getAppListRecent') {
             // console.log(appListRecent);
 
@@ -242,7 +242,7 @@ async function main() {
      * 启动插件
      * @param {string} id 插件id
      */
-    function openApp(id) {
+    function openApp(id, param) {
         mainWindow.hide()
         const appItem = appList.find(item => item.id == id)
         if (appItem.singleton) {
@@ -277,7 +277,7 @@ async function main() {
                         }, ...appItem.windowOptions
                     })
                     window.loadFile(path.join(appItem.path, appItem.entry), {
-                        query: { pid: pid }
+                        query: { pid: pid, param: param }
                     })
                     windowList.push({ window, pid, id: appItem.id })
                     window.on('ready-to-show', () => {
