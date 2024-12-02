@@ -1,0 +1,14 @@
+{
+    "name": "Text Formatter",
+    "version": "1.0.0",
+    "desc": "一个文本格式转换插件，支持大写/小写转换、JSON 格式化等",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "你的名字",
+    "windowOptions": {
+        "width": 500,
+        "height": 400,
+        "resizable": true,
+        "title": "文本格式转换插件"
+    }
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本格式转换插件</title>
+    <script src="../_libs/vue3/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>文本格式转换插件</h1>
+        
+        <!-- 输入框 -->
+        <textarea v-model="inputText" placeholder="请输入文本" rows="8" style="width: 100%;"></textarea>
+        
+        <!-- 格式选择 -->
+        <label for="formatSelect">选择格式:</label>
+        <select v-model="selectedFormat" id="formatSelect" style="width: 100%; margin-top: 10px;">
+            <option value="uppercase">大写转换</option>
+            <option value="lowercase">小写转换</option>
+            <option value="json">JSON 格式化</option>
+            <option value="trim">去除多余空格</option>
+        </select>
+        
+        <!-- 转换按钮 -->
+        <button @click="convertText" style="margin-top: 10px;">转换文本</button>
+        
+        <!-- 显示转换结果 -->
+        <h2>转换结果：</h2>
+        <pre>{{ outputText }}</pre>
+    </div>
+</body>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                inputText: '',         // 输入文本
+                selectedFormat: 'uppercase',  // 选中的格式类型
+                outputText: ''         // 输出转换结果
+            };
+        },
+        methods: {
+            convertText() {
+                const text = this.inputText;
+                
+                // 根据选择的格式进行转换
+                switch (this.selectedFormat) {
+                    case 'uppercase':
+                        this.outputText = text.toUpperCase();
+                        break;
+                    case 'lowercase':
+                        this.outputText = text.toLowerCase();
+                        break;
+                    case 'json':
+                        this.outputText = this.formatJson(text);
+                        break;
+                    case 'trim':
+                        this.outputText = this.trimSpaces(text);
+                        break;
+                    default:
+                        this.outputText = text;
+                        break;
+                }
+            },
+
+            // JSON 格式化
+            formatJson(text) {
+                try {
+                    const jsonObj = JSON.parse(text);   // 尝试解析为 JSON 对象
+                    return JSON.stringify(jsonObj, null, 4);  // 格式化输出
+                } catch (error) {
+                    return 'JSON 格式错误，无法格式化';  // 处理 JSON 错误
+                }
+            },
+
+            // 去除多余空格
+            trimSpaces(text) {
+                return text.replace(/\s+/g, ' ').trim();  // 移除多余空格
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+</html>

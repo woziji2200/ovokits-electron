@@ -1,0 +1,15 @@
+{
+    "name": "Keyword Extractor",
+    "version": "1.0.0",
+    "desc": "一个基于TF-IDF算法的关键词提取插件",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "kirito",
+    "windowOptions": {
+        "width": 500,
+        "height": 400,
+        "resizable": true,
+        "title": "关键词提取插件"
+    }
+}
+

@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频提取与下载</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        // 检查后端服务是否已启动
+        fetch('http://127.0.0.1:5000')
+            .catch(() => {
+                // 如果无法连接到后端服务，尝试启动后端
+                const { exec } = require('child_process');
+                const path = require('path');
+
+                // 启动后端服务器
+                const serverProcess = exec('node app.js', { cwd: path.dirname(location.pathname) });
+
+                serverProcess.stdout.on('data', (data) => {
+                    console.log(`[Server]: ${data}`);
+                });
+
+                serverProcess.stderr.on('data', (data) => {
+                    console.error(`[Server Error]: ${data}`);
+                });
+            });
+    </script>
+</head>
+<body>
+    <h1>视频提取与下载工具</h1>
+    <form id="videoForm">
+        <label for="url">请输入视频页面 URL：</label>
+        <input type="url" id="url" name="url" placeholder="请输入 URL" required>
+        <button type="submit">提取视频</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        // 尝试启动后端服务
+        fetch('http://127.0.0.1:5000')
+            .catch(() => {
+                // 如果无法连接到后端服务，尝试启动后端
+                alert('请确保后端服务 app.js 正在运行！');
+            });
+        document.addEventListener('DOMContentLoaded', () => {
+            startBackend(); // 调用函数以启动后端服务
+        });
+
+        // 提取视频逻辑
+        document.getElementById('videoForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const url = document.getElementById('url').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "正在提取并生成视频，请稍候...";
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/extract', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `downloaded_video_${Date.now()}.mp4`;
+                    link.click();
+                    resultDiv.innerHTML = `<p>视频已成功下载。</p>`;
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `<p>错误：${errorData.message}</p>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultDiv.innerHTML = `<p>发生错误，请检查后端服务！</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

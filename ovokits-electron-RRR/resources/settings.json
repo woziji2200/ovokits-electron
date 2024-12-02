@@ -1,0 +1,11 @@
+{
+    "启动器基本设置": {
+        "type": "divider"
+    },
+    "开机自启动": {
+        "type": "checkbox",
+        "desc": "OvOKits将会在开机时自动启动",
+        "value": false,
+        "label": "开机自启动"
+    }
+}

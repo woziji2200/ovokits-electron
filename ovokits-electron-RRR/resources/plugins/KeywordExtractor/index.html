@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关键词提取插件</title>
+    <script src="../_libs/vue3/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>关键词提取插件</h1>
+        <textarea v-model="inputText" placeholder="请输入文本" rows="8" style="width: 100%;"></textarea>
+        <button @click="extractKeywords" style="margin-top: 10px;">提取关键词</button>
+        <h2>提取的关键词：</h2>
+        <ul>
+            <li v-for="(keyword, index) in keywords" :key="index">{{ keyword }}</li>
+        </ul>
+    </div>
+</body>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                inputText: '',
+                keywords: []
+            };
+        },
+        methods: {
+            extractKeywords() {
+                if (!this.inputText) {
+                    this.keywords = [];
+                    return;
+                }
+                const sentences = this.inputText.split('. ');
+                const tfidfMatrix = this.calculateTFIDF(sentences);
+                const words = this.getWords(sentences);
+                const wordScores = this.calculateWordScores(tfidfMatrix, words);
+                const sortedKeywords = this.getSortedKeywords(wordScores);
+                this.keywords = sortedKeywords;
+            },
+
+            // 计算TF-IDF矩阵
+            calculateTFIDF(sentences) {
+                const words = this.getWords(sentences);
+                const tfidfMatrix = sentences.map(sentence => {
+                    return words.map(word => this.tfIdf(word, sentence, sentences));
+                });
+                return tfidfMatrix;
+            },
+
+            // 计算词的TF-IDF值
+            tfIdf(word, sentence, sentences) {
+                const tf = this.termFrequency(word, sentence);
+                const idf = this.inverseDocumentFrequency(word, sentences);
+                return tf * idf;
+            },
+
+            // 计算词频（TF）
+            termFrequency(word, sentence) {
+                const words = sentence.split(' ');
+                const wordCount = words.filter(w => w === word).length;
+                return wordCount / words.length;
+            },
+
+            // 计算逆文档频率（IDF）
+            inverseDocumentFrequency(word, sentences) {
+                const numSentences = sentences.length;
+                const numContainingWord = sentences.filter(sentence => sentence.includes(word)).length;
+                return Math.log(numSentences / (1 + numContainingWord)) + 1;
+            },
+
+            // 获取所有的词汇
+            getWords(sentences) {
+                const wordsSet = new Set();
+                sentences.forEach(sentence => {
+                    sentence.split(' ').forEach(word => {
+                        wordsSet.add(word);
+                    });
+                });
+                return Array.from(wordsSet);
+            },
+
+            // 计算所有词的TF-IDF得分
+            calculateWordScores(tfidfMatrix, words) {
+                const scores = {};
+                tfidfMatrix.forEach((sentence, index) => {
+                    sentence.forEach((score, wordIndex) => {
+                        const word = words[wordIndex];
+                        if (!scores[word]) {
+                            scores[word] = 0;
+                        }
+                        scores[word] += score;  // 累加每个词的TF-IDF值
+                    });
+                });
+                return scores;
+            },
+
+            // 获取按照得分排序的关键词
+            getSortedKeywords(wordScores) {
+                const sortedKeywords = Object.entries(wordScores)
+                    .sort((a, b) => b[1] - a[1])  // 按照分数降序排序
+                    .map(entry => entry[0]);       // 获取排序后的关键词
+                return sortedKeywords.slice(0, 10);  // 返回前10个关键词
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+</html>
