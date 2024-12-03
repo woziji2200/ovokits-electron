@@ -1,0 +1,12 @@
+{
+    "校园网账号": {
+        "type": "input",
+        "value": "",
+        "placeholder": "校园网账号"
+    },
+    "校园网密码": {
+        "type": "password",
+        "value": "",
+        "placeholder": "校园网密码"
+    }
+}

@@ -15,6 +15,7 @@ async function main() {
         console.log(err);
     })
     app.commandLine.appendSwitch('wm-window-animations-disabled');
+    app.commandLine.appendSwitch('ignore-certificate-errors')
     /**
      * @type { BrowserWindow }
      */
@@ -281,7 +282,10 @@ async function main() {
                     })
                     windowList.push({ window, pid, id: appItem.id })
                     window.on('ready-to-show', () => {
-                        window.show()
+                        const isShow = appItem.windowOptions.show === undefined || appItem.windowOptions.show === true
+                        if(appItem.windowOptions && isShow) {
+                            window.show()
+                        }
                     })
                     window.on('close', () => {
                         windowList = windowList.filter(item => item.pid != currentPid)

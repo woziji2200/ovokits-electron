@@ -1,0 +1,20 @@
+{
+    "name": "OUC校园网登录",
+    "version": "1.1.0",
+    "desc": "一键登录OUC校园网，密码在设置中心配置",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "滑小稽",
+    "logo": "logo.png",
+    "windowOptions": {
+        "width": 200,
+        "height": 100,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "frame": false,
+        "center": true,
+        "transparent": true,
+        "title": "校园网登录",
+        "autoHideMenuBar": true
+    }
+}

@@ -30,6 +30,10 @@
                                     <el-input v-model="settingValue.value"
                                         :placeholder="settingValue.placeholder || ''"></el-input>
                                 </div>
+                                <div v-if="settingValue.type == 'password'">
+                                    <el-input v-model="settingValue.value"
+                                        :placeholder="settingValue.placeholder || ''" type="password"></el-input>
+                                </div>
                                 <div v-if="settingValue.type == 'select'">
                                     <el-select v-model="settingValue.value" placeholder="请选择">
                                         <el-option v-for="item in settingValue.options" :key="item" :label="item"

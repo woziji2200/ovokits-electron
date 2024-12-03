@@ -7,9 +7,7 @@
         "desc": "模型选择",
         "value": "live2d官方示例1",
         "options": [
-            "live2d官方示例1",
-            "live2d官方示例2",
-            "live2d官方示例3"
+            "live2d官方示例1"
         ]
     }
 }

@@ -34,7 +34,7 @@
                     <div class="res-item-title">
                         <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
                         <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)">
-                        </div>
+                        </div> 
                     </div>
                 </div>
 
