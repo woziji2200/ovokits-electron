@@ -12,7 +12,7 @@ if (page == 'settings') {
 } else if (page == 'management') {
     router.push('management')
 }
-console.log('poge', page);
+console.log('page', page);
 
 
 </script>

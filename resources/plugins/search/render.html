@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="res">
+        <div class="sug">
+            输入搜索内容获取搜索建议
+        </div>
+    </div>
+</body>
+
+<script>
+    const res = document.getElementById('res')
+    const openItem = (item) => {
+        window.open(`https://www.bing.com/search?q=${item}`)
+    }
+    window.addEventListener('message', (e) => {
+        if (e.data.type === 'search') {
+            const url = `https://bing.com/AS/Suggestions?pt=page.serp&qry=${e.data.search}&cp=4&csr=1&cvid=33BC858CF7FB4EB68E06A4C74DD62AA1`
+            fetch(url).then(res => res.json()).then(data => {
+                console.log(data)
+                res.innerHTML = ''
+                for (let i = 0; i < data.s.length; i++) {
+                    const item = data.s[i]
+                    const div = document.createElement('div')
+                    if (i === 0) {
+                        div.classList.add('item', 'active')
+                    }
+                    div.classList.add('item')
+                    div.addEventListener('click', () => {
+                        openItem(item.q.replace(//g, '').replace(//g, ''))
+                    })
+                    div.innerHTML = item.q.replace(//g, '<b>').replace(//g, '</b>')
+                    res.appendChild(div)
+                }
+            })
+        } else if (e.data.type === 'init') {
+            console.log(e.data.className);
+
+        } else if (e.data.type === 'keydown') {
+            if (e.data.key === 'ArrowDown') {
+                const items = document.querySelectorAll('.item')
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i]
+                    if (item.classList.contains('active')) {
+                        item.classList.remove('active')
+                        if (i === items.length - 1) {
+                            items[0].classList.add('active')
+                            items[0].scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            })
+                        } else {
+                            items[i + 1].classList.add('active')
+                            items[i + 1].scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            })
+                        }
+                        break
+                    }
+                }
+            } else if (e.data.key === 'ArrowUp') {
+                const items = document.querySelectorAll('.item')
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i]
+                    if (item.classList.contains('active')) {
+                        item.classList.remove('active')
+                        if (i === 0) {
+                            items[items.length - 1].classList.add('active')
+                            items[items.length - 1].scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            })
+                        } else {
+                            items[i - 1].classList.add('active')
+                            items[i - 1].scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            })
+                        }
+                        break
+                    }
+                }
+            } else if(e.data.key === 'Enter') {
+                const items = document.querySelectorAll('.item')
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i]
+                    if (item.classList.contains('active')) {
+                        window.open(`https://www.bing.com/search?q=${item.innerText}`)
+                        break
+                    }
+                }
+
+            }
+        }
+    })
+    const className = (new URLSearchParams(window.location.search)).get('className')
+    // console.log(param);
+    document.body.className = className
+
+    // window.parent
+</script>
+
+<style>
+    .item {
+        padding: 10px;
+        border-bottom: 1px solid var(--search-send-color);
+        color: var(--title-1);
+        cursor: pointer;
+    }
+
+    .item:hover {
+        background-color: var(--search-send-bg-hover);
+    }
+
+    #res {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    *::-webkit-scrollbar {
+        width: 3px;
+        /* height: 10px; */
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: #00000073;
+        border-radius: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background-color: #00000027;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background-color: #000000a9;
+    }
+
+    .style-white {
+        --hight-color: #98b9ff;
+        --select-bg: #f1f1f1;
+        --search-input-bg: #fff;
+        --search-input-color: #555;
+        --search-send-bg: #f8f8f8;
+        --search-send-bg-hover: #f1f1f1;
+        --select-bg-hover: #f1f1f1;
+        --title-1: #333;
+        --title-2: #555;
+        --search-send-color: #555;
+    }
+
+    .style-black {
+        --hight-color: #6578a0;
+        --select-bg: #4b4b4b;
+        --search-input-bg: #333;
+        --search-input-color: #fff;
+        --search-send-bg: #444;
+        --search-send-bg-hover: #555;
+        --select-bg-hover: #4b4b4b;
+        --title-1: #fff;
+        --title-2: #ccc;
+        --search-send-color: #fff;
+    }
+
+    .style-blur {
+        --hight-color: #5ec1ff;
+        --select-bg: #00000074;
+        --search-input-bg: #00000074;
+        --search-input-color: #fff;
+        --search-send-bg: #00000074;
+        --search-send-bg-hover: #000000;
+        --select-bg-hover: #00000074;
+        --title-1: #fff;
+        --title-2: #ffffffa9;
+        --search-send-color: #fff;
+    }
+
+    .active {
+        background-color: var(--select-bg);
+    }
+    .sug {
+        padding: 10px;
+        color: var(--title-2);
+        text-align: center;
+    }
+</style>
+
+</html>

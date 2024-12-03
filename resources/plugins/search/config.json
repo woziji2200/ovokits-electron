@@ -15,5 +15,7 @@
         "title": "ss",
         "autoHideMenuBar": true
     },
-    "hasParam": true
+    "hasParam": true,
+    "render": "render.html",
+    "canHandlerKeydown": true
 }

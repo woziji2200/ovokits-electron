@@ -21,12 +21,13 @@
         </div>
 
         <div @mouseenter="mouseenter" @mouseleave="mouseleave" class="res">
-            <div v-if="isAppRencent" class="res-item-recent" style="text-align: left;">
+            <div v-if="isAppRencent && !tagPluginChoose" class="res-item-recent" style="text-align: left;">
                 最近使用
             </div>
-            <div class="search-res">
+            <div class="search-res" ref="searchRes">
                 <div v-for="i in appShow" :id="i.id"
-                    :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)">
+                    :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)"
+                    v-if="!(tagPluginChoose && tagPluginChoose?.render)">
                     <img v-if="i.startType != 'file'"
                         :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
                     <i class="file-icon" v-if="i.startType == 'file'" :class="getClassWithColor(i.name)"></i>
@@ -35,6 +36,12 @@
                         <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)">
                         </div>
                     </div>
+                </div>
+
+                <div v-if="tagPluginChoose && tagPluginChoose?.render" class="iframe-box">
+                    <iframe ref="renderIframe" class="iframe"
+                        :src="tagPluginChoose.path + '/' + tagPluginChoose.render + `?className=${className}`"
+                        frameborder="0"></iframe>
                 </div>
 
                 <div class="res-item-no" v-if="appShow.length == 0 && appSearch">
@@ -55,7 +62,7 @@
 </style>
 
 <script setup>
-import { ref, reactive, watch,getCurrentInstance } from 'vue'
+import { ref, reactive, watch, getCurrentInstance } from 'vue'
 import Fuse from 'fuse.js'
 import { getClass, getClassWithColor } from 'file-icons-js'
 
@@ -74,6 +81,7 @@ console.log(className.value);
 
 const ipcRenderer = window.electron.ipcRenderer
 const searchInput = ref()
+const searchRes = ref()
 ipcRenderer.on('mainWindow', (event, arg) => {
     if (arg.data === 'mainWindowShow') {
         appRecent.value = ipcRenderer.sendSync('mainWindow', { data: 'getAppListRecent' })
@@ -118,6 +126,14 @@ const appSelect = ref(0)
 const tagPluginChoose = ref(null)
 
 const watchSearch = (newVal, oldVal) => {
+    if (tagPluginChoose.value && tagPluginChoose.value.render) {
+        renderIframe.value.contentWindow?.postMessage({
+            type: 'search',
+            search: newVal
+        }, '*');
+    }
+
+
     if (tagPluginChoose.value) {
         appShow.value = [tagPluginChoose.value]
         appSelect.value = tagPluginChoose.value.id
@@ -161,13 +177,24 @@ const searchHighlight = (value = '', searchValue, id, isTitle) => {
     }
 }
 
+const renderIframe = ref()
 const onkeydown = (event) => {
-    if (event.key == 'ArrowUp') {
+    if (tagPluginChoose.value && tagPluginChoose.value.render) {
+        renderIframe.value.contentWindow?.postMessage({
+            type: 'keydown',
+            key: event.key
+        }, '*');
+        if (tagPluginChoose.value.canHandlerKeydown && event.key == 'Escape' && event.key == 'Backspace') {
+            return
+        }
+    }
+
+    if (event.key == 'ArrowUp' && !tagPluginChoose.value) {
         event.preventDefault()
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) - 1]?.id || appShow.value[appShow.value.length - 1].id
         document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
 
-    } else if (event.key == 'ArrowDown') {
+    } else if (event.key == 'ArrowDown' && !tagPluginChoose.value) {
         event.preventDefault()
         appSelect.value = appShow.value[appShow.value.findIndex(i => i.id == appSelect.value) + 1]?.id || appShow.value[0].id
         document.getElementById(appSelect.value).scrollIntoView({ block: 'center', behavior: 'smooth' })
@@ -182,10 +209,14 @@ const onkeydown = (event) => {
         if (!tagPluginChoose.value) {
             const appNow = appShow.value.find(i => i.id == appSelect.value)
             console.log(appNow);
-            
+
             if (appNow.startType !== 'file' && appNow.hasParam) {
                 tagPluginChoose.value = appNow
                 appSearch.value = ''
+                if (tagPluginChoose.value.render) {
+                } else {
+                    watchSearch(appSearch.value, appSearch.value)
+                }
             }
         }
     } else if (event.key == 'Backspace') {
@@ -194,6 +225,8 @@ const onkeydown = (event) => {
             // 触发watch
             watchSearch(appSearch.value, appSearch.value)
         }
+    } else {
+        searchRes.value.scrollTop = 0
     }
 }
 
@@ -488,5 +521,17 @@ const openPlugin = (id) => {
     color: var(--title-2);
     margin-top: 10px;
     margin-left: 10px;
+}
+
+.iframe {
+    width: 100%;
+    height: 270px;
+    border: none;
+}
+
+.iframe-box {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 </style>
