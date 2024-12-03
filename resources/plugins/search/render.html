@@ -24,7 +24,7 @@
         if (e.data.type === 'search') {
             const url = `https://bing.com/AS/Suggestions?pt=page.serp&qry=${e.data.search}&cp=4&csr=1&cvid=33BC858CF7FB4EB68E06A4C74DD62AA1`
             fetch(url).then(res => res.json()).then(data => {
-                console.log(data)
+                // console.log(data)
                 res.innerHTML = ''
                 for (let i = 0; i < data.s.length; i++) {
                     const item = data.s[i]
@@ -41,7 +41,7 @@
                 }
             })
         } else if (e.data.type === 'init') {
-            console.log(e.data.className);
+            // console.log(e.data.className);
 
         } else if (e.data.type === 'keydown') {
             if (e.data.key === 'ArrowDown') {

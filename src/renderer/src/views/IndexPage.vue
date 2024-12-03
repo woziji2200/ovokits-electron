@@ -127,10 +127,12 @@ const tagPluginChoose = ref(null)
 
 const watchSearch = (newVal, oldVal) => {
     if (tagPluginChoose.value && tagPluginChoose.value.render) {
-        renderIframe.value.contentWindow?.postMessage({
-            type: 'search',
-            search: newVal
-        }, '*');
+        if(renderIframe.value?.contentWindow){
+            renderIframe.value.contentWindow?.postMessage({
+                type: 'search',
+                search: newVal
+            }, '*');
+        }
     }
 
 
@@ -180,11 +182,14 @@ const searchHighlight = (value = '', searchValue, id, isTitle) => {
 const renderIframe = ref()
 const onkeydown = (event) => {
     if (tagPluginChoose.value && tagPluginChoose.value.render) {
-        renderIframe.value.contentWindow?.postMessage({
-            type: 'keydown',
-            key: event.key
-        }, '*');
-        if (tagPluginChoose.value.canHandlerKeydown && event.key == 'Escape' && event.key == 'Backspace') {
+        if(renderIframe.value?.contentWindow){
+            renderIframe.value.contentWindow?.postMessage({
+                type: 'keydown',
+                key: event.key
+            }, '*');
+        }
+
+        if (tagPluginChoose.value.canHandlerKeydown && event.key !== 'Escape' && event.key !== 'Backspace') {
             return
         }
     }
@@ -213,10 +218,7 @@ const onkeydown = (event) => {
             if (appNow.startType !== 'file' && appNow.hasParam) {
                 tagPluginChoose.value = appNow
                 appSearch.value = ''
-                if (tagPluginChoose.value.render) {
-                } else {
-                    watchSearch(appSearch.value, appSearch.value)
-                }
+                watchSearch(appSearch.value, appSearch.value)
             }
         }
     } else if (event.key == 'Backspace') {
