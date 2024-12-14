@@ -1,11 +1,12 @@
 {
-    "name": "快捷翻译",
+    "name": "screenCut",
     "version": "1.0.0",
-    "desc": "快捷翻译",
     "startType": "html",
     "entry": "index.html",
     "author": "H&P",
+    "desc": "截图悬浮",
     "logo": "logo.jpg",
+    "shortcut": "Ctrl+Alt+I",
     "windowOptions": {
         "alwaysOnTop": true,
         "width": 300,

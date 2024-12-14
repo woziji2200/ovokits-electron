@@ -29,7 +29,14 @@ const api = {
     },
     md5: md5,
     fs: fs,
-    shell
+    shell,
+
+    // // translate
+    // async getSelectedText(text){
+    //     return await ipcRenderer.invoke('getSelectedText', text);
+    // },
+    getClipboardText: () => ipcRenderer.invoke(`get-ClipboardText`)
+
 }
 
 

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Menu, Tray, screen, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, Tray, screen, dialog, desktopCapturer, clipboard } from 'electron'
 import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -80,6 +80,7 @@ async function main() {
             })
         }
     }
+
 
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
@@ -283,7 +284,7 @@ async function main() {
                     windowList.push({ window, pid, id: appItem.id })
                     window.on('ready-to-show', () => {
                         const isShow = appItem.windowOptions.show === undefined || appItem.windowOptions.show === true
-                        if(appItem.windowOptions && isShow) {
+                        if (appItem.windowOptions && isShow) {
                             window.show()
                         }
                     })
@@ -294,9 +295,9 @@ async function main() {
             }
             a()()
             pid = pid + 1
-        } else if(appItem.startType.toLowerCase() == 'file') {
+        } else if (appItem.startType.toLowerCase() == 'file') {
             console.log(appItem.path);
-            
+
             shell.openPath(appItem.path)
         }
     }
@@ -496,6 +497,20 @@ async function main() {
             else if (arg.type == 'maximize' && managementWindow.isMaximized()) managementWindow.unmaximize()
             else if (arg.type == 'maximize' && !managementWindow.isMaximized()) managementWindow.maximize()
         }
+    })
+
+    // // translate
+    // ipcMain.handle('getSelectedText', async () => {
+    //     const focusedWindow = BrowserWindow.getFocusedWindow();
+    //     if(focusedWindow){
+    //         const selectedText = await focusedWindow.webContents.executeJavaScript(`window.getSelection().toString();`);
+    //         return selectedText;
+    //     }
+    //     return '';
+    // })
+
+    ipcMain.handle('get-ClipboardText', async () => {
+        return clipboard.readText();
     })
 
 }

@@ -1,0 +1,23 @@
+.translator {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+input,
+select,
+button {
+    margin: 10px 0;
+    padding: 8px;
+    font-size: 1rem;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}

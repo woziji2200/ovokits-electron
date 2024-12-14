@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快捷翻译</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/js-md5@2.5.0/src/md5.js"></script> -->
+
+</head>
+
+<body>
+    <div class="translator">
+        <h4>翻译器</h4>
+        <div>
+            <label for="detectedLang">识别语种为：</label>
+            <span id="detectedLang">检测中...</span>
+        </div>
+        <!-- 查询输入框 -->
+        <input id="originalText" placeholder="请放入要翻译的内容" readonly />
+        <!-- 选择目标语言 -->
+        <select id="targetLang">
+            <option value="en">英语</option>
+            <option value="zh">汉语</option>
+            <option value="jp">日语</option>
+            <option value="kor">韩语</option>
+            <option value="fra">法语</option>
+            <option value="spa">西班牙语</option>
+            <!-- 待添加 百度 支持语言 -->
+        </select>
+
+        <!-- 翻译按钮 -->
+        <!-- <button type="button" id="transButton">百度翻译</button> -->
+
+        <!-- 翻译结果 -->
+        <div class="result">
+            <!-- <h2>百度翻译结果</h2> -->
+            <p id="targetText">未输入内容</p>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+
+</body>
+
+</html>
