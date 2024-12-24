@@ -11,12 +11,12 @@ function previewImage() {
         const file = fileInput.files[0];
         const reader = new FileReader();
 
-        reader.onload = function (e) {
+        reader.onload = function(e) {
             selectedImage.src = e.target.result;
             selectedImage.style.display = 'block';  // 确保显示图片
         };
 
-        reader.onerror = function (error) {
+        reader.onerror = function(error) {
             console.error("图片读取失败：", error);
             alert("无法读取图片，请选择其他图片文件。");
         };
@@ -41,7 +41,7 @@ async function recognizeText() {
     const reader = new FileReader();
     reader.readAsArrayBuffer(file);
 
-    reader.onload = async function (event) {
+    reader.onload = async function(event) {
         const imageData = event.target.result;
 
         try {
