@@ -1,5 +1,5 @@
 {
-    "name": "快捷翻译",
+    "name": "LL_translate",
     "version": "1.0.0",
     "desc": "快捷翻译",
     "startType": "html",
@@ -7,10 +7,9 @@
     "author": "H&P",
     "logo": "logo.jpg",
     "windowOptions": {
-        "alwaysOnTop": true,
         "width": 300,
         "height": 400,
-        "title": "截图悬浮",
+        "title": "快捷翻译",
         "autoHideMenuBar": true,
         "frame": true
     }

@@ -1,0 +1,21 @@
+body {
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+button {
+    margin: 5px;
+    padding: 10px;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
