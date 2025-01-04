@@ -1,111 +1,102 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关键词提取插件</title>
-    <script src="../_libs/vue3/vue.global.js"></script>
+    <title>关键词提取</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            display: inline-block;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results p {
+            margin: 0;
+            padding: 5px 0;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <h1>关键词提取插件</h1>
-        <textarea v-model="inputText" placeholder="请输入文本" rows="8" style="width: 100%;"></textarea>
-        <button @click="extractKeywords" style="margin-top: 10px;">提取关键词</button>
-        <h2>提取的关键词：</h2>
-        <ul>
-            <li v-for="(keyword, index) in keywords" :key="index">{{ keyword }}</li>
-        </ul>
+    <div class="container">
+        <h1>关键词提取工具</h1>
+        <p>请输入文本内容：</p>
+        <textarea id="textInput" placeholder="在此输入文本内容..."></textarea>
+        <p>请输入需要提取的关键词数量（默认返回全部）：</p>
+        <input type="number" id="numInput" placeholder="输入数字 (如：4)" min="1">
+        <button id="extractButton">提取关键词</button>
+
+        <div class="results" id="results">
+            <h2>提取结果：</h2>
+        </div>
     </div>
-</body>
 
-<script>
-    const app = Vue.createApp({
-        data() {
-            return {
-                inputText: '',
-                keywords: []
-            };
-        },
-        methods: {
-            extractKeywords() {
-                if (!this.inputText) {
-                    this.keywords = [];
-                    return;
-                }
-                const sentences = this.inputText.split('. ');
-                const tfidfMatrix = this.calculateTFIDF(sentences);
-                const words = this.getWords(sentences);
-                const wordScores = this.calculateWordScores(tfidfMatrix, words);
-                const sortedKeywords = this.getSortedKeywords(wordScores);
-                this.keywords = sortedKeywords;
-            },
+    <script src="main.js"></script>
+    <script>
+        // 页面交互逻辑
+        document.getElementById('extractButton').addEventListener('click', async () => {
+            const textInput = document.getElementById('textInput').value;
+            const numInput = parseInt(document.getElementById('numInput').value) || undefined;
 
-            // 计算TF-IDF矩阵
-            calculateTFIDF(sentences) {
-                const words = this.getWords(sentences);
-                const tfidfMatrix = sentences.map(sentence => {
-                    return words.map(word => this.tfIdf(word, sentence, sentences));
-                });
-                return tfidfMatrix;
-            },
-
-            // 计算词的TF-IDF值
-            tfIdf(word, sentence, sentences) {
-                const tf = this.termFrequency(word, sentence);
-                const idf = this.inverseDocumentFrequency(word, sentences);
-                return tf * idf;
-            },
-
-            // 计算词频（TF）
-            termFrequency(word, sentence) {
-                const words = sentence.split(' ');
-                const wordCount = words.filter(w => w === word).length;
-                return wordCount / words.length;
-            },
-
-            // 计算逆文档频率（IDF）
-            inverseDocumentFrequency(word, sentences) {
-                const numSentences = sentences.length;
-                const numContainingWord = sentences.filter(sentence => sentence.includes(word)).length;
-                return Math.log(numSentences / (1 + numContainingWord)) + 1;
-            },
-
-            // 获取所有的词汇
-            getWords(sentences) {
-                const wordsSet = new Set();
-                sentences.forEach(sentence => {
-                    sentence.split(' ').forEach(word => {
-                        wordsSet.add(word);
-                    });
-                });
-                return Array.from(wordsSet);
-            },
-
-            // 计算所有词的TF-IDF得分
-            calculateWordScores(tfidfMatrix, words) {
-                const scores = {};
-                tfidfMatrix.forEach((sentence, index) => {
-                    sentence.forEach((score, wordIndex) => {
-                        const word = words[wordIndex];
-                        if (!scores[word]) {
-                            scores[word] = 0;
-                        }
-                        scores[word] += score;  // 累加每个词的TF-IDF值
-                    });
-                });
-                return scores;
-            },
-
-            // 获取按照得分排序的关键词
-            getSortedKeywords(wordScores) {
-                const sortedKeywords = Object.entries(wordScores)
-                    .sort((a, b) => b[1] - a[1])  // 按照分数降序排序
-                    .map(entry => entry[0]);       // 获取排序后的关键词
-                return sortedKeywords.slice(0, 10);  // 返回前10个关键词
+            if (!textInput.trim()) {
+                alert("请输入文本内容！");
+                return;
             }
-        }
-    });
 
-    app.mount('#app');
-</script>
+            try {
+                // 调用 main.js 中的逻辑
+                const accessToken = await getAccessToken(API_KEY, SECRET_KEY);
+                const keywords = await extractKeywords(accessToken, [textInput], numInput);
+
+                // 显示结果
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = "<h2>提取结果：</h2>";
+                if (keywords.length > 0) {
+                    keywords.forEach((item, index) => {
+                        resultsDiv.innerHTML += `<p>${index + 1}. 关键词: ${item.word}, 置信度: ${item.score.toFixed(4)}</p>`;
+                    });
+                } else {
+                    resultsDiv.innerHTML += "<p>未提取到关键词。</p>";
+                }
+            } catch (error) {
+                alert("关键词提取失败，请检查控制台日志。");
+                console.error("错误详情:", error);
+            }
+        });
+    </script>
+</body>
 </html>

@@ -1,86 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>文本格式转换插件</title>
     <script src="../_libs/vue3/vue.global.js"></script>
-</head>
-<body>
+    <style>
+      .highlight {
+        background-color: yellow;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
     <div id="app">
-        <h1>文本格式转换插件</h1>
-        
-        <!-- 输入框 -->
-        <textarea v-model="inputText" placeholder="请输入文本" rows="8" style="width: 100%;"></textarea>
-        
-        <!-- 格式选择 -->
-        <label for="formatSelect">选择格式:</label>
-        <select v-model="selectedFormat" id="formatSelect" style="width: 100%; margin-top: 10px;">
-            <option value="uppercase">大写转换</option>
-            <option value="lowercase">小写转换</option>
-            <option value="json">JSON 格式化</option>
-            <option value="trim">去除多余空格</option>
-        </select>
-        
-        <!-- 转换按钮 -->
-        <button @click="convertText" style="margin-top: 10px;">转换文本</button>
-        
-        <!-- 显示转换结果 -->
-        <h2>转换结果：</h2>
-        <pre>{{ outputText }}</pre>
+      <h1>文本格式转换插件</h1>
+
+      <!-- 输入框 -->
+      <textarea
+        v-model="inputText"
+        placeholder="请输入文本"
+        rows="8"
+        style="width: 100%"
+      ></textarea>
+
+      <!-- 格式选择 -->
+      <label for="formatSelect">选择操作:</label>
+      <select v-model="selectedAction" id="formatSelect" style="width: 100%; margin-top: 10px">
+        <option value="uppercase">大写转换</option>
+        <option value="lowercase">小写转换</option>
+        <option value="json">JSON 格式化</option>
+        <option value="trim">去除多余空格</option>
+        <option value="capitalizeSentences">句首字母大写</option>
+        <option value="highlightKeywords">关键词高亮</option>
+      </select>
+
+      <!-- 关键词输入框 -->
+      <div v-if="selectedAction === 'highlightKeywords'" style="margin-top: 10px">
+        <label for="keywordInput">请输入关键词:</label>
+        <input
+          v-model="keyword"
+          id="keywordInput"
+          type="text"
+          placeholder="输入关键词"
+          style="width: 100%"
+        />
+      </div>
+
+      <!-- 转换按钮 -->
+      <button @click="performAction" style="margin-top: 10px">执行操作</button>
+
+      <!-- 显示转换结果 -->
+      <h2>转换结果：</h2>
+      <div v-if="selectedAction === 'highlightKeywords'" v-html="outputText"></div>
+      <pre v-else>{{ outputText }}</pre>
     </div>
-</body>
+  </body>
 
-<script>
+  <script>
     const app = Vue.createApp({
-        data() {
-            return {
-                inputText: '',         // 输入文本
-                selectedFormat: 'uppercase',  // 选中的格式类型
-                outputText: ''         // 输出转换结果
-            };
-        },
-        methods: {
-            convertText() {
-                const text = this.inputText;
-                
-                // 根据选择的格式进行转换
-                switch (this.selectedFormat) {
-                    case 'uppercase':
-                        this.outputText = text.toUpperCase();
-                        break;
-                    case 'lowercase':
-                        this.outputText = text.toLowerCase();
-                        break;
-                    case 'json':
-                        this.outputText = this.formatJson(text);
-                        break;
-                    case 'trim':
-                        this.outputText = this.trimSpaces(text);
-                        break;
-                    default:
-                        this.outputText = text;
-                        break;
-                }
-            },
-
-            // JSON 格式化
-            formatJson(text) {
-                try {
-                    const jsonObj = JSON.parse(text);   // 尝试解析为 JSON 对象
-                    return JSON.stringify(jsonObj, null, 4);  // 格式化输出
-                } catch (error) {
-                    return 'JSON 格式错误，无法格式化';  // 处理 JSON 错误
-                }
-            },
-
-            // 去除多余空格
-            trimSpaces(text) {
-                return text.replace(/\s+/g, ' ').trim();  // 移除多余空格
-            }
+      data() {
+        return {
+          inputText: '', // 输入文本
+          selectedAction: 'uppercase', // 选中的操作类型
+          outputText: '', // 输出转换结果
+          keyword: '' // 关键词（仅用于高亮功能）
         }
-    });
+      },
+      methods: {
+        performAction() {
+          const text = this.inputText
 
-    app.mount('#app');
-</script>
+          switch (this.selectedAction) {
+            case 'uppercase':
+              this.outputText = text.toUpperCase()
+              break
+            case 'lowercase':
+              this.outputText = text.toLowerCase()
+              break
+            case 'json':
+              this.outputText = this.formatJson(text)
+              break
+            case 'trim':
+              this.outputText = this.trimSpaces(text)
+              break
+            case 'capitalizeSentences':
+              this.outputText = this.capitalizeSentences(text)
+              break
+            case 'highlightKeywords':
+              this.outputText = this.highlightKeywords(text, this.keyword)
+              break
+            default:
+              this.outputText = text
+              break
+          }
+        },
+
+        // JSON 格式化
+        formatJson(text) {
+          try {
+            const jsonObj = JSON.parse(text) // 尝试解析为 JSON 对象
+            return JSON.stringify(jsonObj, null, 4) // 格式化输出
+          } catch (error) {
+            return 'JSON 格式错误，无法格式化' // 处理 JSON 错误
+          }
+        },
+
+        // 去除多余空格
+        trimSpaces(text) {
+          return text.replace(/\s+/g, ' ').trim() // 移除多余空格
+        },
+
+        // 句首字母大写
+        capitalizeSentences(text) {
+          return text
+            .split('.')
+            .map((sentence) => {
+              const trimmed = sentence.trim()
+              return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+            })
+            .join('. ')
+        },
+
+        // 关键词高亮
+        highlightKeywords(text, keyword) {
+          if (!keyword) return text
+          const escapedKeyword = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // 转义正则特殊字符
+          const regex = new RegExp(`(${escapedKeyword})`, 'gi')
+          return text.replace(regex, '<span class="highlight">$1</span>')
+        }
+      }
+    })
+
+    app.mount('#app')
+  </script>
 </html>

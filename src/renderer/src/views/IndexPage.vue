@@ -28,9 +28,14 @@
                 <div v-for="i in appShow" :id="i.id"
                     :class="i.id == appSelect ? 'res-item res-item-select' : 'res-item'" @click="openPlugin(i.id)"
                     v-if="!(tagPluginChoose && tagPluginChoose?.render)">
-                    <img v-if="i.startType != 'file'"
-                        :src="i.logo ? i.path + '/' + i.logo : './../../resources/app.png'" alt="" srcset="">
-                    <i class="file-icon" v-if="i.startType == 'file'" :class="getClassWithColor(i.name)"></i>
+                    <img v-if="i.startType != 'file' && i.startType != 'localapp'"
+                        :src="i.logo ? i.path + '/' + i.logo : defaultLogo" alt="" srcset="">
+                    <!-- <i class="file-icon" v-if="i.startType == 'file'" :class="getClassWithColor(i.name)"></i> -->
+                    <!-- <i class="file-icon" v-if="i.startType == 'localapp'" :class="getClassWithColor(i.name)"></i> -->
+                    <img v-if="i.startType == 'localapp'"  :src="i.icon" alt="" srcset="">
+                    <img v-if="i.startType == 'file'"  :src="i.icon" alt="" srcset="">
+                     <span></span>
+                     
                     <div class="res-item-title">
                         <div class="res-item-title-1" v-html="searchHighlight(i.name, appSearch, i.id, true)"></div>
                         <div class="res-item-title-2" v-html="searchHighlight(i.desc, appSearch, i.id, false)">
@@ -77,7 +82,7 @@ className.value = {
 }[windowStyle]
 console.log(className.value);
 
-
+const defaultLogo = `data:image/svg+xml;charset=utf-8;base64,PHN2ZyB0PSIxNzM1OTY2MDI4NTUzIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjUyNTMiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNDY4LjY5MzMzMyAxNi43MjUzMzNhODUuMzMzMzMzIDg1LjMzMzMzMyAwIDAgMSA4Mi41NiAwbDM4MS45NTIgMjExLjA3MmE4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxIDQ0LjA3NDY2NyA3NC42NjY2Njd2NDE5LjAyOTMzM2E4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxLTQ0LjA3NDY2NyA3NC42NjY2NjdsLTM4MS45NTIgMjExLjExNDY2N2E4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxLTgyLjU2IDBsLTM4MS45NTItMjExLjA3MkE4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxIDQyLjY2NjY2NyA3MjEuNDkzMzMzVjMwMi41MDY2NjdhODUuMzMzMzMzIDg1LjMzMzMzMyAwIDAgMSA0NC4wNzQ2NjYtNzQuNjY2NjY3TDQ2OC42OTMzMzMgMTYuNjgyNjY3eiBtNDIzLjI1MzMzNCAyODUuNzgxMzM0bC0zODEuOTk0NjY3LTIxMS4wNzJMMTI4IDMwMi41MDY2Njd2NDE4Ljk4NjY2NmwzODEuOTUyIDIxMS4wNzIgMzgxLjk5NDY2Ny0yMTEuMDcyVjMwMi41MDY2Njd6IG0tNjg0LjcxNDY2NyA0Mi4xOTczMzNhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA1Ny45ODQtMTYuNzI1MzMzbDI0NC43MzYgMTM1LjI1MzMzMyAyNDQuNzc4NjY3LTEzNS4yNTMzMzNhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA0MS4yNTg2NjYgNzQuNjY2NjY2bC0yNDMuMzcwNjY2IDEzNC41Mjh2MjY4LjE2YTQyLjY2NjY2NyA0Mi42NjY2NjcgMCAwIDEtODUuMzMzMzM0IDBWNTM3LjE3MzMzM0wyMjMuOTE0NjY3IDQwMi42ODhhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMS0xNi42ODI2NjctNTguMDI2NjY3eiIgZmlsbD0iIzc1QzgyQiIgcC1pZD0iNTI1NCI+PC9wYXRoPjwvc3ZnPg==`
 
 const ipcRenderer = window.electron.ipcRenderer
 const searchInput = ref()
@@ -92,6 +97,14 @@ ipcRenderer.on('mainWindow', (event, arg) => {
         }
         searchInput.value.select()
         searchInput.value.focus()
+    }
+
+    if(arg.data === "mainWindowStyleChange") {
+        className.value = {
+            "极简白色": "style-white",
+            "极简黑色": "style-black",
+            "透明黑色": "style-blur",
+        }[api.getPluginSettings(pid, '启动器风格')]
     }
 })
 
@@ -171,6 +184,8 @@ const searchHighlight = (value = '', searchValue, id, isTitle) => {
         return '<span>文件：</span>' + highlight + (appSelect.value == id ? '&nbsp;&nbsp;<span style="color: var(--title-2)">Enter to select</span>' : '')
     } else if (appItem.startType == 'file' && !isTitle) {
         return appItem.path
+    } else if (appItem.startType == 'localapp' && !isTitle) {
+        return appItem.desc
     }
     if (isTitle) {
         return highlight + (appSelect.value == id ? '&nbsp;&nbsp;<span style="color: var(--title-2)">Enter to select</span>' : '')

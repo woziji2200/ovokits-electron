@@ -1,11 +1,11 @@
 {
-  "name": "关键词提取插件",
-  "version": "1.0.0",
-  "desc": "关键词提取插件",
-  "startType": "html",
-  "entry": "index.html",
-  "author": "kirito",
-  "windowOptions": {
+    "name": "文本纠错插件",
+    "version": "1.0.0",
+    "desc": "文本纠错插件",
+    "startType": "html",
+    "entry": "index.html",
+    "author": "kirito",
+    "windowOptions": {
       "width": 800,
       "height": 600,
       "minWidth": 400,
@@ -16,6 +16,7 @@
       "alwaysOnTop": false,
       "frame": true,
       "center": true,
-      "title": "Keyword Extractor"
+      "title": "Text Corrector"
+    }
   }
-}
+  

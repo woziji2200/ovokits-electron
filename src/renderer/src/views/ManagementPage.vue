@@ -8,7 +8,7 @@
                 <div class="plugin" v-for="i in localPluginListShow" @click="openPlugin(i.id)">
                     <div class="plugin-left">
                         <img class="plugin-left-img"
-                            :src="i.logo ? i.path + '\\' + i.logo : './../../resources/app.png'" alt=""
+                            :src="i.logo ? i.path + '\\' + i.logo : defaultLogo" alt=""
                             style="width: 100%; height: 100%;">
                     </div>
                     <div class="plugin-right">
@@ -54,7 +54,32 @@
                 </div>
             </div>
         </el-tab-pane>
-        <el-tab-pane label="插件市场" name="second"></el-tab-pane>
+        <el-tab-pane label="插件市场" name="second" style="position: relative;">
+            <div class="market-loading" v-loading="false"> </div>
+            <div class="market-title">
+                全部插件
+            </div>
+            <div class="market-p">
+                <div class="market-plugin" v-for="i in 10" v-loading="false">
+                    <div class="market-plugin-left">
+                        <div class="market-plugin-left-title">插件名</div>
+                        <div class="market-plugin-left-author">
+                            <span>作者：{{ "123" }}</span>
+                            <span>版本：{{ "111" }}</span>
+                        </div>
+                        <div class="market-plugin-left-desc">{{ "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" }}</div>
+                    </div>
+                    <div class="market-plugin-right" v-if="Math.random() > 0.5">
+                        下载
+                    </div>
+                    <div class="market-plugin-right market-plugin-right-install" v-else>
+                        已安装
+                    </div>
+                </div>
+
+            </div>
+
+        </el-tab-pane>
     </el-tabs>
 </template>
 
@@ -73,7 +98,7 @@ localPluginListShow.value = localPluginListAll.value
 const localPluginListPage = ref(1)
 console.log(localPluginListAll.value)
 const fs = window.api.fs
-
+const defaultLogo = `data:image/svg+xml;charset=utf-8;base64,PHN2ZyB0PSIxNzM1OTY2MDI4NTUzIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjUyNTMiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNDY4LjY5MzMzMyAxNi43MjUzMzNhODUuMzMzMzMzIDg1LjMzMzMzMyAwIDAgMSA4Mi41NiAwbDM4MS45NTIgMjExLjA3MmE4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxIDQ0LjA3NDY2NyA3NC42NjY2Njd2NDE5LjAyOTMzM2E4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxLTQ0LjA3NDY2NyA3NC42NjY2NjdsLTM4MS45NTIgMjExLjExNDY2N2E4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxLTgyLjU2IDBsLTM4MS45NTItMjExLjA3MkE4NS4zMzMzMzMgODUuMzMzMzMzIDAgMCAxIDQyLjY2NjY2NyA3MjEuNDkzMzMzVjMwMi41MDY2NjdhODUuMzMzMzMzIDg1LjMzMzMzMyAwIDAgMSA0NC4wNzQ2NjYtNzQuNjY2NjY3TDQ2OC42OTMzMzMgMTYuNjgyNjY3eiBtNDIzLjI1MzMzNCAyODUuNzgxMzM0bC0zODEuOTk0NjY3LTIxMS4wNzJMMTI4IDMwMi41MDY2Njd2NDE4Ljk4NjY2NmwzODEuOTUyIDIxMS4wNzIgMzgxLjk5NDY2Ny0yMTEuMDcyVjMwMi41MDY2Njd6IG0tNjg0LjcxNDY2NyA0Mi4xOTczMzNhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA1Ny45ODQtMTYuNzI1MzMzbDI0NC43MzYgMTM1LjI1MzMzMyAyNDQuNzc4NjY3LTEzNS4yNTMzMzNhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA0MS4yNTg2NjYgNzQuNjY2NjY2bC0yNDMuMzcwNjY2IDEzNC41Mjh2MjY4LjE2YTQyLjY2NjY2NyA0Mi42NjY2NjcgMCAwIDEtODUuMzMzMzM0IDBWNTM3LjE3MzMzM0wyMjMuOTE0NjY3IDQwMi42ODhhNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMS0xNi42ODI2NjctNTguMDI2NjY3eiIgZmlsbD0iIzc1QzgyQiIgcC1pZD0iNTI1NCI+PC9wYXRoPjwvc3ZnPg==`
 
 watch(localPluginSearch, (val) => {
     localPluginListShow.value = localPluginListAll.value.filter(i => i.name.includes(val))
@@ -128,13 +153,16 @@ function openPluginSetting(id) {
 .el-tabs {
     background-image: linear-gradient(to right, #f7faff, #fff) !important;
 }
+
 .el-tabs__header {
     background-color: transparent !important;
 }
-.el-tabs__item.is-active{
+
+.el-tabs__item.is-active {
     background-color: #ffffff90 !important;
 }
-.el-input__wrapper{
+
+.el-input__wrapper {
     background-color: #ffffff90 !important;
 
 }
@@ -241,5 +269,100 @@ body {
 
 .plugin-ghost-tool {
     cursor: pointer;
+}
+
+.market-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 120px);
+    /* background-color: aqua; */
+}
+
+.market-title {
+    font-size: 36px;
+    font-weight: bold;
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.market-plugin {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+    border: 1px solid #ccccccb2;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #cdcdcd78;
+    background-color: #ffffff8d;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    justify-content: space-between;
+    padding: 10px;
+    position: relative;
+}
+
+.market-plugin-left {
+    margin-left: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+    width: calc(100% - 200px);
+    padding-right: 50px;
+}
+
+.market-plugin-left-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    margin-top: 4px;
+}
+
+.market-plugin-left-author {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 6px;
+}
+.market-plugin-left-author span {
+    margin-right: 10px;
+}
+
+.market-plugin-left-desc {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.market-plugin-right {
+    padding: 10px 20px;
+    background-color: #27acff;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 999px;
+    margin-right: 10px;
+    width: 60px;
+    text-align: center;
+}
+.market-plugin-right-install{
+    background-color: white;
+    border: solid 2px #1cbb0d;
+    color: #1cbb0d;
+}
+.market-plugin-right:hover {
+    background-color: #27acffcc;
+}
+.market-plugin-right-install:hover {
+    background-color: #f9fff8;
+}
+.market-p {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 }
 </style>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Markdown笔记</title>
+    <link rel="stylesheet" href="dist/index.css" />
+    <script src="dist/index.min.js"></script>
+</head>
+
+<body>
+    <div id="vditor" class="vditor"></div>
+</body>
+
+</html>
+<script>
+    const pid = api.getWindowPid(window)
+    const fs = window.api.fs
+
+    // 防抖
+    function debounce(fn, delay) {
+        let timer = null
+        return function () {
+            if (timer) {
+                clearTimeout(timer)
+            }
+            timer = setTimeout(() => {
+                fn.apply(this, arguments)
+            }, delay)
+        }
+    }
+
+    const saveFile = debounce((md) => {
+        const content = md
+        // 没有文件夹则创建文件夹
+        if (!fs.existsSync(`./data`)) {
+            fs.mkdirSync(`./data`)
+        }
+        fs.writeFileSync(`./data/temp.md`, content)
+    }, 3000)
+
+    const getFile = () => {
+        if (fs.existsSync(`./data/temp.md`)) {
+            return fs.readFileSync(`./data/temp.md`, { encoding: "utf-8" })
+        }
+        return ""
+    }
+
+    const initVditor = (language) => {
+        window.vditor = new Vditor("vditor", {
+            cdn: "https://unpkg.com/vditor",//关键
+            // lang: language,
+            height: "calc(100vh - 40px)",
+            preview: {
+                theme: {
+                    path: "dist/css/content-theme",//关键
+                },
+            },
+            hint: {
+                emojiPath: "dist/images/emoji",//关键
+            },
+            cache: {
+                enable: false,
+            },
+            mode: "wysiwyg",
+            input: (value) => {
+                saveFile(value)
+            },
+            value: getFile(),
+            toolbar: ["emoji","headings","bold","italic","strike","|","line","quote","list","ordered-list","check","outdent" ,"indent","code","inline-code","insert-after","insert-before","undo","redo","upload","link","table"]
+        });
+    };
+    initVditor("zh_CN");
+
+</script>

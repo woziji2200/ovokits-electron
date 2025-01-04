@@ -7,8 +7,15 @@ import fs from 'fs'
 import md5 from 'js-md5'
 import Store from 'electron-store';
 import * as ws from '../../resources/windows-shortcut/windows-shortcuts'
+import regedit from 'regedit'
+
+
+const { promisify } = require('util');
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
 
 async function main() {
+
     const store = new Store();
     process.on('uncaughtException', function (err) {
         dialog.showErrorBox('Error', err.message)
@@ -120,7 +127,9 @@ async function main() {
     // code. You can also put them in separate files and require them here.
     let appList = [];
     let appListRecent = []
-    ipcMain.on('mainWindow', (event, arg) => {
+    let localApp;
+
+    ipcMain.on('mainWindow', async (event, arg) => {
         // console.log('mainWindow', arg);
         if (arg.data == 'pointerover') {
             mainWindow.setIgnoreMouseEvents(false)
@@ -138,6 +147,10 @@ async function main() {
             if (settings['搜索结果中包含最近文件'].value) {
                 appList = appList.concat(recentFile)
             }
+            if (localApp == undefined && settings['搜索结果中包含本机应用'].value) {
+                localApp = await getLocalApp()
+            }
+            appList = appList.concat(localApp)
             appListRecent = store.get('appListRecent', []).map(id => appList.find(item => item.id == id))
             appListRecent = appListRecent.filter(item => item)
             event.returnValue = appList
@@ -170,12 +183,14 @@ async function main() {
                 .filter(i => !i.startsWith('ms-'))
                 .filter(i => !i.startsWith('http-'))
                 .filter(i => !i.startsWith('https-'))
+                .filter(i => !i.endsWith('exe'))
+                .filter(i => !i.endsWith('EXE'))
                 .map(i => i.split('.').slice(0, -1).join('.'))
                 .filter(i => i.includes('.'))
             let recentFileList = []
             // let recentFileList = []
             Promise.allSettled(recentFile.map(i => wsQuery(path.join(recentFileDir, i + '.lnk')))).then(res => {
-                res.forEach((item, index) => {
+                res.forEach(async (item, index) => {
                     if (item.status == 'fulfilled') {
                         // const lnkPathBuffer = new TextEncoder('gbk').encode(item.value.target)
                         const lnkPath = item.value.target
@@ -185,6 +200,7 @@ async function main() {
                             path: lnkPath,
                             startType: 'file',
                             desc: lnkPath,
+                            icon: (await app.getFileIcon(lnkPath)).toDataURL(),
                         })
                     }
                 })
@@ -193,11 +209,63 @@ async function main() {
         })
     }
 
-
     let recentFile = await getRecentFile()
-    // console.log(recentFile.filter(i => i.name.includes('pptx')));
 
-    // console.log(recentFile);
+    async function getLocalApp() {
+        const startMenuDir = 'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs';  // 应用快捷方式所在目录
+        const localAppList = [];
+
+        try {
+            // 递归遍历指定目录，查找所有快捷方式文件 (.lnk)
+            const findShortcuts = async (dir) => {
+                const items = await readdir(dir);
+                const promises = items.map(async (item) => {
+                    const itemPath = path.join(dir, item);
+                    const itemStat = await stat(itemPath);
+
+                    if (itemStat.isDirectory()) {
+                        // 如果是目录，递归查找
+                        return findShortcuts(itemPath);
+                    } else if (itemStat.isFile() && item.toLowerCase().endsWith('.lnk')) {
+                        // 如果是快捷方式文件 (.lnk)，处理它
+                        const appName = path.basename(item, '.lnk');  // 获取应用名称
+                        const appId = md5(appName);  // 使用 MD5 对应用名称进行哈希
+
+                        try {
+                            // 获取快捷方式指向的真实路径
+                            const target = (await wsQuery(itemPath));
+                            // console.log(targetPath);
+                            // console.log(target.target);
+                            if (!target.target.endsWith('.exe')) return
+                            localAppList.push({
+                                id: appId,
+                                name: appName,
+                                path: target.target,  // 真实路径
+                                startType: 'localapp',
+                                desc: '本地应用：' + (target.desc || "暂无描述"),
+                                icon: (await app.getFileIcon(target.target)).toDataURL(),
+                            });
+                        } catch (err) {
+                            console.error(`Error resolving shortcut ${itemPath}:`, err);
+                        }
+                    }
+                });
+
+                await Promise.all(promises);
+            };
+
+            // 开始递归查找
+            await findShortcuts(startMenuDir);
+
+            return localAppList;
+        } catch (err) {
+            console.error("Error while fetching local apps:", err);
+            throw err;
+        }
+    }
+
+
+    // console.log(111, localApp);
 
 
     /**
@@ -298,7 +366,18 @@ async function main() {
         } else if (appItem.startType.toLowerCase() == 'file') {
             console.log(appItem.path);
 
-            shell.openPath(appItem.path)
+            try {
+                shell.openPath(appItem.path)
+            } catch (error) {
+                console.error(error);
+            }
+        } else if (appItem.startType.toLowerCase() == 'localapp') {
+            console.log(appItem.path);
+            try {
+                shell.openPath(appItem.path)
+            } catch (error) {
+                console.error(error);
+            }
         }
     }
     // store.clear('appListRecent')
@@ -440,6 +519,10 @@ async function main() {
                     openAsHidden: false
                 })
             }
+            mainWindow.webContents.send('mainWindow', {
+                data: 'mainWindowStyleChange'
+            })
+            
         } else if (arg.data == 'ctrlWindow') {
             if (arg.type == 'close') settingsWindow.close()
             else if (arg.type == 'minimize') settingsWindow.minimize()
@@ -512,6 +595,10 @@ async function main() {
     ipcMain.handle('get-ClipboardText', async () => {
         return clipboard.readText();
     })
+
+
+
+
 
 }
 

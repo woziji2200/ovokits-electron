@@ -1,14 +1,21 @@
 {
-    "name": "Text Formatter",
-    "version": "1.0.0",
-    "desc": "一个文本格式转换插件，支持大写/小写转换、JSON 格式化等",
-    "startType": "html",
-    "entry": "index.html",
-    "author": "你的名字",
-    "windowOptions": {
-        "width": 500,
-        "height": 400,
-        "resizable": true,
-        "title": "文本格式转换插件"
-    }
+  "name": "文本格式转换插件",
+  "version": "1.0.0",
+  "desc": "文本格式转换插件",
+  "startType": "html",
+  "entry": "index.html",
+  "author": "kirito",
+  "windowOptions": {
+    "width": 800,
+    "height": 600,
+    "minWidth": 400,
+    "minHeight": 300,
+    "maxWidth": 1200,
+    "maxHeight": 900,
+    "resizable": true,
+    "alwaysOnTop": false,
+    "frame": true,
+    "center": true,
+    "title": "文本格式转换插件"
+  }
 }

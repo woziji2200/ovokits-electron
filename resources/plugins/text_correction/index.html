@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本纠错工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            display: inline-block;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results p {
+            margin: 0;
+            padding: 5px 0;
+        }
+        .results .corrected {
+            font-weight: bold;
+            color: green;
+        }
+        .results .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文本纠错工具</h1>
+        <p>请输入要纠错的文本：</p>
+        <textarea id="textInput" placeholder="在此输入文本内容..."></textarea>
+        <button id="correctButton">纠错文本</button>
+
+        <div class="results" id="results">
+            <h2>纠错结果：</h2>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // 页面交互逻辑
+        document.getElementById('correctButton').addEventListener('click', async () => {
+            const textInput = document.getElementById('textInput').value;
+
+            if (!textInput.trim()) {
+                alert("请输入文本内容！");
+                return;
+            }
+
+            try {
+                // 获取 Access Token
+                const accessToken = await getAccessToken(API_KEY, SECRET_KEY);
+
+                // 调用文本纠错 API
+                const correctionResult = await correctText(accessToken, textInput);
+
+                // 显示纠错结果
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = "<h2>纠错结果：</h2>";
+                if (correctionResult) {
+                    // 显示纠正后的文本
+                    resultsDiv.innerHTML += `<p><span class="corrected">纠正后的文本：</span><br/>${correctionResult.correct_query}</p>`;
+                    
+                    // 显示纠错细节
+                    correctionResult.details.forEach((item, index) => {
+                        resultsDiv.innerHTML += `<p class="error">${index + 1}. 句子: "${item.sentence}"</p>`;
+                        resultsDiv.innerHTML += `<p class="corrected">纠正后的句子: "${item.sentence_fixed}"</p>`;
+                        item.vec_fragment.forEach((frag, fragIndex) => {
+                            resultsDiv.innerHTML += `<p class="error">   错误片段: "${frag.ori_frag}"</p>`;
+                            resultsDiv.innerHTML += `<p class="corrected">   建议修改为: "${frag.correct_frag}"</p>`;
+                            resultsDiv.innerHTML += `<p>   纠错类型: ${frag.label}</p>`;
+                            resultsDiv.innerHTML += `<p>   纠错解释: ${frag.explain}</p>`;
+                        });
+                    });
+                } else {
+                    resultsDiv.innerHTML += "<p>未找到纠错内容。</p>";
+                }
+            } catch (error) {
+                alert("文本纠错失败，请检查控制台日志。");
+                console.error("错误详情:", error);
+            }
+        });
+    </script>
+</body>
+</html>

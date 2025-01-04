@@ -31,6 +31,8 @@
     "md5": "^2.3.0",
     "pixi-live2d-display": "^0.4.0",
     "pixi.js": "^6.5.10",
+    "regedit": "^5.1.3",
+    "vditor": "^3.10.8",
     "vue-router": "^4.4.5",
     "windows-shortcuts": "^0.1.6"
   },
